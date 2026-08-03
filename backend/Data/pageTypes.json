@@ -1,0 +1,679 @@
+{
+  "version": "2.0",
+  "totalPages": 96,
+  "types": ["TEAM_LEFT", "TEAM_RIGHT", "UNKNOWN"],
+  "pages": [
+    {
+      "pageNumber": 1,
+      "file": "001_MEX_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "MEX",
+      "notes": ""
+    },
+    {
+      "pageNumber": 2,
+      "file": "002_MEX_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "MEX",
+      "notes": ""
+    },
+    {
+      "pageNumber": 3,
+      "file": "003_RSA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "RSA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 4,
+      "file": "004_RSA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "RSA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 5,
+      "file": "005_KOR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "KOR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 6,
+      "file": "006_KOR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "KOR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 7,
+      "file": "007_CZE_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "CZE",
+      "notes": ""
+    },
+    {
+      "pageNumber": 8,
+      "file": "008_CZE_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "CZE",
+      "notes": ""
+    },
+    {
+      "pageNumber": 9,
+      "file": "009_CAN_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "CAN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 10,
+      "file": "010_CAN_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "CAN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 11,
+      "file": "011_BIH_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "BIH",
+      "notes": ""
+    },
+    {
+      "pageNumber": 12,
+      "file": "012_BIH_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "BIH",
+      "notes": ""
+    },
+    {
+      "pageNumber": 13,
+      "file": "013_QAT_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "QAT",
+      "notes": ""
+    },
+    {
+      "pageNumber": 14,
+      "file": "014_QAT_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "QAT",
+      "notes": ""
+    },
+    {
+      "pageNumber": 15,
+      "file": "015_SUI_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "SUI",
+      "notes": ""
+    },
+    {
+      "pageNumber": 16,
+      "file": "016_SUI_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "SUI",
+      "notes": ""
+    },
+    {
+      "pageNumber": 17,
+      "file": "017_BRA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "BRA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 18,
+      "file": "018_BRA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "BRA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 19,
+      "file": "019_MAR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "MAR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 20,
+      "file": "020_MAR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "MAR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 21,
+      "file": "021_HAI_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "HAI",
+      "notes": ""
+    },
+    {
+      "pageNumber": 22,
+      "file": "022_HAI_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "HAI",
+      "notes": ""
+    },
+    {
+      "pageNumber": 23,
+      "file": "023_SCO_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "SCO",
+      "notes": ""
+    },
+    {
+      "pageNumber": 24,
+      "file": "024_SCO_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "SCO",
+      "notes": ""
+    },
+    {
+      "pageNumber": 25,
+      "file": "025_USA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "USA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 26,
+      "file": "026_USA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "USA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 27,
+      "file": "027_PAR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "PAR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 28,
+      "file": "028_PAR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "PAR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 29,
+      "file": "029_AUS_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "AUS",
+      "notes": ""
+    },
+    {
+      "pageNumber": 30,
+      "file": "030_AUS_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "AUS",
+      "notes": ""
+    },
+    {
+      "pageNumber": 31,
+      "file": "031_TUR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "TUR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 32,
+      "file": "032_TUR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "TUR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 33,
+      "file": "033_GER_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "GER",
+      "notes": ""
+    },
+    {
+      "pageNumber": 34,
+      "file": "034_GER_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "GER",
+      "notes": ""
+    },
+    {
+      "pageNumber": 35,
+      "file": "035_CUW_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "CUW",
+      "notes": ""
+    },
+    {
+      "pageNumber": 36,
+      "file": "036_CUW_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "CUW",
+      "notes": ""
+    },
+    {
+      "pageNumber": 37,
+      "file": "037_CIV_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "CIV",
+      "notes": ""
+    },
+    {
+      "pageNumber": 38,
+      "file": "038_CIV_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "CIV",
+      "notes": ""
+    },
+    {
+      "pageNumber": 39,
+      "file": "039_ECU_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "ECU",
+      "notes": ""
+    },
+    {
+      "pageNumber": 40,
+      "file": "040_ECU_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "ECU",
+      "notes": ""
+    },
+    {
+      "pageNumber": 41,
+      "file": "041_NED_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "NED",
+      "notes": ""
+    },
+    {
+      "pageNumber": 42,
+      "file": "042_NED_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "NED",
+      "notes": ""
+    },
+    {
+      "pageNumber": 43,
+      "file": "043_JPN_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "JPN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 44,
+      "file": "044_JPN_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "JPN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 45,
+      "file": "045_SWE_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "SWE",
+      "notes": ""
+    },
+    {
+      "pageNumber": 46,
+      "file": "046_SWE_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "SWE",
+      "notes": ""
+    },
+    {
+      "pageNumber": 47,
+      "file": "047_TUN_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "TUN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 48,
+      "file": "048_TUN_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "TUN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 49,
+      "file": "049_BEL_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "BEL",
+      "notes": ""
+    },
+    {
+      "pageNumber": 50,
+      "file": "050_BEL_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "BEL",
+      "notes": ""
+    },
+    {
+      "pageNumber": 51,
+      "file": "051_EGY_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "EGY",
+      "notes": ""
+    },
+    {
+      "pageNumber": 52,
+      "file": "052_EGY_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "EGY",
+      "notes": ""
+    },
+    {
+      "pageNumber": 53,
+      "file": "053_IRN_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "IRN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 54,
+      "file": "054_IRN_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "IRN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 55,
+      "file": "055_NZL_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "NZL",
+      "notes": ""
+    },
+    {
+      "pageNumber": 56,
+      "file": "056_NZL_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "NZL",
+      "notes": ""
+    },
+    {
+      "pageNumber": 57,
+      "file": "057_ESP_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "ESP",
+      "notes": ""
+    },
+    {
+      "pageNumber": 58,
+      "file": "058_ESP_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "ESP",
+      "notes": ""
+    },
+    {
+      "pageNumber": 59,
+      "file": "059_CPV_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "CPV",
+      "notes": ""
+    },
+    {
+      "pageNumber": 60,
+      "file": "060_CPV_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "CPV",
+      "notes": ""
+    },
+    {
+      "pageNumber": 61,
+      "file": "061_KSA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "KSA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 62,
+      "file": "062_KSA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "KSA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 63,
+      "file": "063_FRA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "FRA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 64,
+      "file": "064_FRA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "FRA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 65,
+      "file": "065_URU_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "URU",
+      "notes": ""
+    },
+    {
+      "pageNumber": 66,
+      "file": "066_URU_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "URU",
+      "notes": ""
+    },
+    {
+      "pageNumber": 67,
+      "file": "067_SEN_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "SEN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 68,
+      "file": "068_SEN_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "SEN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 69,
+      "file": "069_IRQ_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "IRQ",
+      "notes": ""
+    },
+    {
+      "pageNumber": 70,
+      "file": "070_IRQ_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "IRQ",
+      "notes": ""
+    },
+    {
+      "pageNumber": 71,
+      "file": "071_NOR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "NOR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 72,
+      "file": "072_NOR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "NOR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 73,
+      "file": "073_ARG_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "ARG",
+      "notes": ""
+    },
+    {
+      "pageNumber": 74,
+      "file": "074_ARG_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "ARG",
+      "notes": ""
+    },
+    {
+      "pageNumber": 75,
+      "file": "075_DZA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "DZA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 76,
+      "file": "076_DZA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "DZA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 77,
+      "file": "077_AUT_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "AUT",
+      "notes": ""
+    },
+    {
+      "pageNumber": 78,
+      "file": "078_AUT_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "AUT",
+      "notes": ""
+    },
+    {
+      "pageNumber": 79,
+      "file": "079_JOR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "JOR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 80,
+      "file": "080_JOR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "JOR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 81,
+      "file": "081_POR_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "POR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 82,
+      "file": "082_POR_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "POR",
+      "notes": ""
+    },
+    {
+      "pageNumber": 83,
+      "file": "083_COD_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "COD",
+      "notes": ""
+    },
+    {
+      "pageNumber": 84,
+      "file": "084_COD_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "COD",
+      "notes": ""
+    },
+    {
+      "pageNumber": 85,
+      "file": "085_UZB_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "UZB",
+      "notes": ""
+    },
+    {
+      "pageNumber": 86,
+      "file": "086_UZB_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "UZB",
+      "notes": ""
+    },
+    {
+      "pageNumber": 87,
+      "file": "087_COL_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "COL",
+      "notes": ""
+    },
+    {
+      "pageNumber": 88,
+      "file": "088_COL_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "COL",
+      "notes": ""
+    },
+    {
+      "pageNumber": 89,
+      "file": "089_ENG_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "ENG",
+      "notes": ""
+    },
+    {
+      "pageNumber": 90,
+      "file": "090_ENG_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "ENG",
+      "notes": ""
+    },
+    {
+      "pageNumber": 91,
+      "file": "091_CRO_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "CRO",
+      "notes": ""
+    },
+    {
+      "pageNumber": 92,
+      "file": "092_CRO_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "CRO",
+      "notes": ""
+    },
+    {
+      "pageNumber": 93,
+      "file": "093_GHA_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "GHA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 94,
+      "file": "094_GHA_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "GHA",
+      "notes": ""
+    },
+    {
+      "pageNumber": 95,
+      "file": "095_PAN_LEFT.jpg",
+      "type": "TEAM_LEFT",
+      "team": "PAN",
+      "notes": ""
+    },
+    {
+      "pageNumber": 96,
+      "file": "096_PAN_RIGHT.jpg",
+      "type": "TEAM_RIGHT",
+      "team": "PAN",
+      "notes": ""
+    }
+  ]
+}

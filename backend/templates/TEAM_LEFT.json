@@ -1,0 +1,97 @@
+{
+  "layout": "TEAM_LEFT",
+  "referenceWidth": 2467,
+  "referenceHeight": 3127,
+  "stickers": [
+    {
+      "position": 1,
+      "number": 1,
+      "type": "SHIELD",
+      "left": 1310,
+      "top": 105,
+      "width": 610,
+      "height": 800
+    },
+    {
+      "position": 2,
+      "number": 2,
+      "type": "PLAYER",
+      "left": 1930,
+      "top": 90,
+      "width": 530,
+      "height": 820
+    },
+    {
+      "position": 3,
+      "number": 3,
+      "type": "PLAYER",
+      "left": 145,
+      "top": 965,
+      "width": 590,
+      "height": 780
+    },
+    {
+      "position": 4,
+      "number": 4,
+      "type": "PLAYER",
+      "left": 745,
+      "top": 965,
+      "width": 590,
+      "height": 780
+    },
+    {
+      "position": 5,
+      "number": 5,
+      "type": "PLAYER",
+      "left": 1345,
+      "top": 965,
+      "width": 590,
+      "height": 780
+    },
+    {
+      "position": 6,
+      "number": 6,
+      "type": "PLAYER",
+      "left": 1940,
+      "top": 965,
+      "width": 525,
+      "height": 780
+    },
+    {
+      "position": 7,
+      "number": 7,
+      "type": "PLAYER",
+      "left": 145,
+      "top": 1735,
+      "width": 590,
+      "height": 825
+    },
+    {
+      "position": 8,
+      "number": 8,
+      "type": "PLAYER",
+      "left": 745,
+      "top": 1735,
+      "width": 590,
+      "height": 825
+    },
+    {
+      "position": 9,
+      "number": 9,
+      "type": "PLAYER",
+      "left": 1345,
+      "top": 1735,
+      "width": 590,
+      "height": 825
+    },
+    {
+      "position": 10,
+      "number": 10,
+      "type": "PLAYER",
+      "left": 1940,
+      "top": 1735,
+      "width": 525,
+      "height": 825
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "figuritas-backend",
+  "version": "1.0.0",
+  "description": "API para intercambio de figuritas del Mundial",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node src/server.js",
+    "seed": "node src/utils/seedStickers.js",
+    "importar-catalogo": "node scripts/importCatalogo.js",
+    "orientar-album": "node scripts/normalizeOrientation.js",
+    "crop-pages": "node scripts/cropMargins.js",
+    "detectar-figuritas": "node scripts/detectGrid.js",
+    "crop-team-page": "node scripts/cropTeamPage.js",
+    "crop-team-stickers": "node scripts/cropStickersFromTeamPage.js",
+    "clasificar-paginas": "node scripts/classifyPages.js",
+    "set-page-type": "node scripts/setPageType.js",
+    "paginas-pendientes": "node scripts/listUnknownPages.js",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@techstark/opencv-js": "^5.0.0-release.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "glob": "^13.0.6",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0",
+    "pg": "^8.22.0",
+    "sharp": "^0.35.3",
+    "socket.io": "^4.7.5",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "globals": "^17.8.0",
+    "prettier": "^3.9.6"
+  }
+}

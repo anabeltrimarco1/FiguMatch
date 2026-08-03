@@ -1,0 +1,41 @@
+.page-content {
+  width: 100%;
+}
+
+.page-section-title {
+  margin: 0 0 20px;
+  font-size: 1.35rem;
+  color: #172b4d;
+}
+
+.page-empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #607089;
+}
+
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.page-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .page-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .page-toolbar-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "group": "A",
+    "team": "Mexico",
+    "code": "MEX 1",
+    "number": 1,
+    "category": "Escudo",
+    "name": "Escudo",
+    "image": "/images/stickers/MEX/MEX_1.webp"
+  },
+  {
+    "id": 2,
+    "group": "A",
+    "team": "Mexico",
+    "code": "MEX 2",
+    "number": 2,
+    "category": "Jugador",
+    "name": "Luis Malagón",
+    "image": "/images/stickers/MEX/MEX_2.webp"
+  }
+]

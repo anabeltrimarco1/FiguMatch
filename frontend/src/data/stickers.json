@@ -1,0 +1,402 @@
+[
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 1",
+    "number": 1,
+    "category": "Escudo",
+    "name": "Escudo de México",
+    "image_path": "/stickers/MEX/MEX_001.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 2",
+    "number": 2,
+    "category": "Jugador",
+    "name": "Luis Malagón",
+    "image_path": "/stickers/MEX/MEX_002.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 3",
+    "number": 3,
+    "category": "Jugador",
+    "name": "Johan Vásquez",
+    "image_path": "/stickers/MEX/MEX_003.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 4",
+    "number": 4,
+    "category": "Jugador",
+    "name": "Jorge Sánchez",
+    "image_path": "/stickers/MEX/MEX_004.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 5",
+    "number": 5,
+    "category": "Jugador",
+    "name": "César Montes",
+    "image_path": "/stickers/MEX/MEX_005.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 6",
+    "number": 6,
+    "category": "Jugador",
+    "name": "Jesús Gallardo",
+    "image_path": "/stickers/MEX/MEX_006.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 7",
+    "number": 7,
+    "category": "Jugador",
+    "name": "Israel Reyes",
+    "image_path": "/stickers/MEX/MEX_007.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 8",
+    "number": 8,
+    "category": "Jugador",
+    "name": "Diego Lainez",
+    "image_path": "/stickers/MEX/MEX_008.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 9",
+    "number": 9,
+    "category": "Jugador",
+    "name": "Carlos Rodríguez",
+    "image_path": "/stickers/MEX/MEX_009.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 10",
+    "number": 10,
+    "category": "Jugador",
+    "name": "Edson Álvarez",
+    "image_path": "/stickers/MEX/MEX_010.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 11",
+    "number": 11,
+    "category": "Jugador",
+    "name": "Orbelín Pineda",
+    "image_path": "/stickers/MEX/MEX_011.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 12",
+    "number": 12,
+    "category": "Jugador",
+    "name": "Marcel Ruiz",
+    "image_path": "/stickers/MEX/MEX_012.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 13",
+    "number": 13,
+    "category": "Equipo",
+    "name": "Foto de equipo México",
+    "image_path": "/stickers/MEX/MEX_013.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 14",
+    "number": 14,
+    "category": "Jugador",
+    "name": "Erick Sánchez",
+    "image_path": "/stickers/MEX/MEX_014.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 15",
+    "number": 15,
+    "category": "Jugador",
+    "name": "Hirving Lozano",
+    "image_path": "/stickers/MEX/MEX_015.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 16",
+    "number": 16,
+    "category": "Jugador",
+    "name": "Santiago Giménez",
+    "image_path": "/stickers/MEX/MEX_016.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 17",
+    "number": 17,
+    "category": "Jugador",
+    "name": "Raúl Jiménez",
+    "image_path": "/stickers/MEX/MEX_017.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 18",
+    "number": 18,
+    "category": "Jugador",
+    "name": "Alexis Vega",
+    "image_path": "/stickers/MEX/MEX_018.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 19",
+    "number": 19,
+    "category": "Jugador",
+    "name": "Roberto Alvarado",
+    "image_path": "/stickers/MEX/MEX_019.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "México",
+    "code": "MEX 20",
+    "number": 20,
+    "category": "Jugador",
+    "name": "César Huerta",
+    "image_path": "/stickers/MEX/MEX_020.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 1",
+    "number": 1,
+    "category": "Escudo",
+    "name": "Escudo de Sudáfrica",
+    "image_path": "/stickers/RSA/RSA_001.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 2",
+    "number": 2,
+    "category": "Jugador",
+    "name": "Ronwen Williams",
+    "image_path": "/stickers/RSA/RSA_002.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 3",
+    "number": 3,
+    "category": "Jugador",
+    "name": "Sipho Chaine",
+    "image_path": "/stickers/RSA/RSA_003.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 4",
+    "number": 4,
+    "category": "Jugador",
+    "name": "Aubrey Modiba",
+    "image_path": "/stickers/RSA/RSA_004.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 5",
+    "number": 5,
+    "category": "Jugador",
+    "name": "Samkelo Kabini",
+    "image_path": "/stickers/RSA/RSA_005.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 6",
+    "number": 6,
+    "category": "Jugador",
+    "name": "Mbekezeli Mbokazi",
+    "image_path": "/stickers/RSA/RSA_006.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 7",
+    "number": 7,
+    "category": "Jugador",
+    "name": "Khuliso Ndamane",
+    "image_path": "/stickers/RSA/RSA_007.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 8",
+    "number": 8,
+    "category": "Jugador",
+    "name": "Siyabonga Ngezana",
+    "image_path": "/stickers/RSA/RSA_008.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 9",
+    "number": 9,
+    "category": "Jugador",
+    "name": "Khuliso Mudau",
+    "image_path": "/stickers/RSA/RSA_009.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 10",
+    "number": 10,
+    "category": "Jugador",
+    "name": "Nkosinathi Sibisi",
+    "image_path": "/stickers/RSA/RSA_010.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 11",
+    "number": 11,
+    "category": "Jugador",
+    "name": "Teboho Mokoena",
+    "image_path": "/stickers/RSA/RSA_011.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 12",
+    "number": 12,
+    "category": "Jugador",
+    "name": "Thalente Mbatha",
+    "image_path": "/stickers/RSA/RSA_012.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 13",
+    "number": 13,
+    "category": "Equipo",
+    "name": "Foto de equipo Sudáfrica",
+    "image_path": "/stickers/RSA/RSA_013.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 14",
+    "number": 14,
+    "category": "Jugador",
+    "name": "Bathusi Aubaas",
+    "image_path": "/stickers/RSA/RSA_014.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 15",
+    "number": 15,
+    "category": "Jugador",
+    "name": "Vuma Sithole",
+    "image_path": "/stickers/RSA/RSA_015.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 16",
+    "number": 16,
+    "category": "Jugador",
+    "name": "Sipho Mbule",
+    "image_path": "/stickers/RSA/RSA_016.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 17",
+    "number": 17,
+    "category": "Jugador",
+    "name": "Lyle Foster",
+    "image_path": "/stickers/RSA/RSA_017.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 18",
+    "number": 18,
+    "category": "Jugador",
+    "name": "Iqraam Rayners",
+    "image_path": "/stickers/RSA/RSA_018.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 19",
+    "number": 19,
+    "category": "Jugador",
+    "name": "Mohau Nkota",
+    "image_path": "/stickers/RSA/RSA_019.png",
+    "status_validacion": "validado_foto"
+  },
+  {
+    "group_name": "A",
+    "team": "Sudáfrica",
+    "code": "RSA 20",
+    "number": 20,
+    "category": "Jugador",
+    "name": "Oswin Appollis",
+    "image_path": "/stickers/RSA/RSA_020.png",
+    "status_validacion": "validado_foto"
+  }
+]

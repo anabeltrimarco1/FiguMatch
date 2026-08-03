@@ -1,0 +1,39 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables privadas
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Compilaciones
+dist/
+**/dist/
+build/
+**/build/
+
+# Logs y temporales
+*.log
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Copias de seguridad
+backup/
+**/backup/
+
+# Archivos temporales del álbum
+cropped-pages/
+**/cropped-pages/
+# Imágenes de procesamiento (NO subir a Git)
+backend/public/oriented/
+backend/public/debug/
+backend/public/page-validation/
+backend/public/cropped-pages/
+
+# Si existen en la raíz
+oriented/
+debug/
+cropped-pages/

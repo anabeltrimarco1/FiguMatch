@@ -1,0 +1,113 @@
+/* ==========================================
+   FIGUMATCH — VARIABLES GLOBALES
+========================================== */
+
+:root {
+  /* Fondos */
+  --fm-bg: #0b1020;
+  --fm-bg-soft: #11182b;
+
+  /* Superficies */
+  --fm-surface: #141b30;
+  --fm-surface-soft: #20283e;
+  --fm-surface-hover: #252f48;
+
+  /* Colores principales */
+  --fm-primary: #2563eb;
+  --fm-primary-dark: #173c70;
+  --fm-primary-soft: #60a5fa;
+
+  /* Estados */
+  --fm-success: #45df83;
+  --fm-warning: #f59e0b;
+  --fm-danger: #ef4444;
+  --fm-info: #35bddf;
+
+  /* Texto */
+  --fm-text: #f7f8fc;
+  --fm-text-soft: #aeb7cf;
+  --fm-text-muted: #77819c;
+
+  /* Bordes */
+  --fm-border: rgba(255, 255, 255, 0.08);
+  --fm-border-primary: rgba(96, 165, 250, 0.16);
+
+  /* Radios */
+  --fm-radius-sm: 12px;
+  --fm-radius-md: 16px;
+  --fm-radius: 20px;
+  --fm-radius-lg: 24px;
+  --fm-radius-xl: 28px;
+
+  /* Sombras */
+  --fm-shadow-sm: 0 10px 25px rgba(0, 0, 0, 0.14);
+  --fm-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+  --fm-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.3);
+
+  /* Transiciones */
+  --fm-transition-fast: 0.18s ease;
+  --fm-transition: 0.25s ease;
+
+  /* Tamaños */
+  --fm-container: 1500px;
+  --fm-control-height: 48px;
+  /* ==========================================
+   EFECTOS GLASS
+========================================== */
+
+  --fm-glass: rgba(20, 27, 48, 0.9);
+  --fm-glass-soft: rgba(20, 27, 48, 0.75);
+
+  /* ==========================================
+   GRADIENTES
+========================================== */
+
+  --fm-gradient-primary: linear-gradient(
+    135deg,
+    #10233f 0%,
+    #173c70 55%,
+    #2563eb 100%
+  );
+
+  --fm-gradient-sidebar: linear-gradient(
+    180deg,
+    #10233f 0%,
+    #142b4d 55%,
+    #0f213b 100%
+  );
+
+  --fm-gradient-card: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
+
+  /* ==========================================
+   OVERLAYS
+========================================== */
+
+  --fm-overlay: rgba(2, 6, 23, 0.68);
+
+  /* ==========================================
+   LAYOUT
+========================================== */
+
+  --fm-sidebar-width: 282px;
+
+  --fm-header-height: 96px;
+
+  /* ==========================================
+   Z INDEX
+========================================== */
+
+  --fm-z-sidebar: 1000;
+  --fm-z-header: 900;
+  --fm-z-overlay: 950;
+
+  --fm-gradient-primary: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #13233f 45%,
+    #18365f 100%
+  );
+}
