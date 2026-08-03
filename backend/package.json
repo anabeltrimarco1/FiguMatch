@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "API para intercambio de figuritas del Mundial",
   "type": "module",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
     "dev": "node --watch server.js",
-    "start": "node src/server.js",
+    "start": "node server.js",
     "seed": "node src/utils/seedStickers.js",
     "importar-catalogo": "node scripts/importCatalogo.js",
     "orientar-album": "node scripts/normalizeOrientation.js",
