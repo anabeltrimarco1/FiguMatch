@@ -136,9 +136,9 @@ router.post("/register", async (req, res) => {
       user,
     });
   } catch (error) {
-  console.error("ERROR LOGIN COMPLETO:", error);
+    console.error("ERROR LOGIN COMPLETO:", error);
 
-  return res.status(500).json({
+    return res.status(500).json({
     error: error.message,
     stack: error.stack,
   });
