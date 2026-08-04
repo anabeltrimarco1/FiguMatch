@@ -26,7 +26,7 @@ router.get("/conversations", requireAuth, async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT DISTINCT ON (other_user_id)
+     SELECT DISTINCT ON (other_user_id)
   other_user_id AS id,
   username,
   content AS last_message,
@@ -124,7 +124,7 @@ router.get("/:userId", requireAuth, async (req, res) => {
         message: "El usuario no existe.",
       });
     }
-
+ 
     const messagesResult = await pool.query(
       `
       SELECT
@@ -298,29 +298,30 @@ router.post("/", requireAuth, async (req, res) => {
     }
 
     const result = await pool.query(
-      `
-      INSERT INTO messages (
-       sender_id,
-       receiver_id,
-       content
+    `
+    INSERT INTO messages (
+      trade_request_id,
+      sender_id,
+      receiver_id,
+      content
     )
     VALUES ($1, $2, $3, $4)
 
     RETURNING
-     id,receiver_id,
-     trade_request_id,
-    sender_id,
-    receiver_id,
-    content AS body,
-    created_at
-      `,
-      [
-        tradeRequestId,
-        senderUserId,
-        receiverUserId,
-        body,
-      ]
-    );
+      id,
+      trade_request_id,
+      sender_id,
+      receiver_id,
+      content AS body,
+      created_at
+    `,
+    [
+      tradeRequestId,
+      senderUserId,
+      receiverUserId,
+      body,
+    ]
+  );
 
     const createdMessage = result.rows[0];
 
