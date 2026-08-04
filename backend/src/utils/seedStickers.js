@@ -2,7 +2,7 @@
 // Los nombres de jugadores son genéricos (Jugador 1, Jugador 2, ...) porque las
 // planteles reales se confirman recién cerca del torneo. Podés reemplazar estos
 // datos por el álbum real editando la tabla `stickers` o este script.
-import { pool } from "../db.js";
+import { pool } from "../../config/db.js";
 
 const TEAMS = [
   "Argentina",
