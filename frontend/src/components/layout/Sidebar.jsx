@@ -41,6 +41,11 @@ const menuGroups = [
         label: "Coincidencias",
       },
       {
+        to: "/intercambios",
+        icon: "📦",
+        label: "Intercambios",
+      },
+      {
         to: "/chat",
         icon: "💬",
         label: "Chat",

@@ -260,5 +260,138 @@ router.post("/", requireAuth, async (req, res) => {
     });
   }
 });
+/*
+PUT /api/trade-requests/:id/accept
+*/
+router.put("/:id/accept", requireAuth, async (req, res) => {
+  try {
+    const tradeId = Number(req.params.id);
+
+    const result = await query(
+      `
+      UPDATE trade_requests
+      SET
+        status = 'accepted',
+        updated_at = NOW()
+      WHERE id = $1
+        AND receiver_id = $2
+        AND status = 'pending'
+      RETURNING *
+      `,
+      [tradeId, req.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Solicitud no encontrada",
+      });
+    }
+
+    return res.json({
+      success: true,
+      tradeRequest: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+});
+/*
+PUT /api/trade-requests/:id/reject
+*/
+router.put("/:id/reject", requireAuth, async (req, res) => {
+  try {
+    const tradeId = Number(req.params.id);
+
+    const result = await query(
+      `
+      UPDATE trade_requests
+      SET
+        status='rejected',
+        updated_at=NOW()
+      WHERE id=$1
+        AND receiver_id=$2
+        AND status='pending'
+      RETURNING *
+      `,
+      [tradeId, req.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error:"Solicitud no encontrada",
+      });
+    }
+
+    res.json({
+      success:true,
+      tradeRequest:result.rows[0],
+    });
+
+  } catch(error){
+
+    res.status(500).json({
+      error:error.message,
+    });
+
+  }
+});
+/*
+PUT /api/trade-requests/:id/cancel
+*/
+router.put("/:id/cancel", requireAuth, async (req,res)=>{
+
+  try{
+
+    const tradeId=Number(req.params.id);
+
+    const result=await query(
+
+      `
+      UPDATE trade_requests
+      SET
+        status='cancelled',
+        updated_at=NOW()
+      WHERE id=$1
+        AND requester_id=$2
+        AND status='pending'
+      RETURNING *
+      `,
+
+      [tradeId,req.userId]
+
+    );
+
+    if(result.rows.length===0){
+
+      return res.status(404).json({
+        error:"Solicitud no encontrada",
+      });
+
+    }
+
+    res.json({
+
+      success:true,
+      tradeRequest:result.rows[0],
+
+    });
+
+  }
+  catch(error){
+
+    res.status(500).json({
+
+      error:error.message,
+
+    });
+
+  }
+
+});
 
 export default router;

@@ -11,6 +11,7 @@ import Matches from "./pages/Matches.jsx";
 import Faltantes from "./pages/Faltantes.jsx";
 import Repetidas from "./pages/Repetidas.jsx";
 import Chat from "./pages/Chat.jsx";
+import TradeCenter from "./pages/TradeCenter.jsx";
 
 import { useAuth } from "./context/AuthContext.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
@@ -55,6 +56,10 @@ export default function App() {
         <Route path="/faltantes" element={<Faltantes />} />
         <Route path="/repetidas" element={<Repetidas />} />
         <Route path="/chat" element={<Chat />} />
+        <Route
+          path="/intercambios"
+          element={<TradeCenter />}
+        />
       </Route>
 
       <Route
