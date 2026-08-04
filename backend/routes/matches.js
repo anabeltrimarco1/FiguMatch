@@ -285,15 +285,15 @@ router.post("/request", requireAuth, async (req, res) => {
       }
 
       const offeredResult = await query(
-        `
-        SELECT id
-        FROM user_stickers
-        WHERE user_id = $1
-          AND sticker_id = $2
-          AND status = 'repetida'
-        `,
-        [requesterId, offeredStickerId],
-      );
+       `
+      SELECT sticker_id
+      FROM user_stickers
+      WHERE user_id = $1
+      AND sticker_id = $2
+      AND status = 'repetida'
+    `,
+    [requesterId, offeredStickerId],
+    );
 
       if (offeredResult.rows.length === 0) {
         return res.status(400).json({
@@ -302,15 +302,15 @@ router.post("/request", requireAuth, async (req, res) => {
       }
 
       const requestedResult = await query(
-        `
-        SELECT id
-        FROM user_stickers
-        WHERE user_id = $1
-          AND sticker_id = $2
-          AND status = 'repetida'
-        `,
-        [receiverId, requestedStickerId],
-      );
+       `
+      SELECT sticker_id
+      FROM user_stickers
+      WHERE user_id = $1
+      AND sticker_id = $2
+      AND status = 'repetida'
+      `,
+    [receiverId, requestedStickerId],
+    );
 
       if (requestedResult.rows.length === 0) {
         return res.status(400).json({
