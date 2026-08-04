@@ -39,13 +39,13 @@ function calculateCompatibility(giveCount, receiveCount) {
   };
 }
 
-router.get("/", requireAuth, async (req, res) => {
+  router.get("/", requireAuth, async (req, res) => {
   try {
-    const meId = req.userId;
+    const meId = Number(req.userId);
 
     const ellosMeDan = await query(
-      `
-SELECT
+  `
+  SELECT
     us.user_id AS other_id,
     s.id AS sticker_id,
     s.code,
@@ -54,40 +54,26 @@ SELECT
     s.name,
     s.category,
     s.group_name
-
-FROM user_stickers us
-
-JOIN stickers s
-ON s.id = us.sticker_id
-
-WHERE us.status='repetida'
-
-console.log("ellosMeDan:", ellosMeDan.rows.length);
-console.log("yoLesDoy:", yoLesDoy.rows.length);
-
-AND us.user_id<>$1
-
-AND us.sticker_id IN (
-
-    SELECT sticker_id
-
-    FROM user_stickers
-
-    WHERE user_id=$1
-
-    AND status='me_falta'
-console.log("ellosMeDan:", ellosMeDan.rows.length);
-console.log("yoLesDoy:", yoLesDoy.rows.length);
-)
-
-ORDER BY s.team,s.number
-      `,
-      [meId],
-    );
+  FROM user_stickers AS us
+  INNER JOIN stickers AS s
+    ON s.id = us.sticker_id
+  WHERE us.status = 'repetida'
+    AND us.user_id <> $1
+    AND EXISTS (
+      SELECT 1
+      FROM user_stickers AS mine
+      WHERE mine.user_id = $1
+        AND mine.sticker_id = us.sticker_id
+        AND mine.status = 'me_falta'
+    )
+  ORDER BY s.team, s.number
+  `,
+  [Number(meId)],
+);
 
     const yoLesDoy = await query(
-      `
-SELECT
+  `
+  SELECT
     us.user_id AS other_id,
     s.id AS sticker_id,
     s.code,
@@ -96,32 +82,22 @@ SELECT
     s.name,
     s.category,
     s.group_name
-
-FROM user_stickers us
-
-JOIN stickers s
-ON s.id = us.sticker_id
-
-WHERE us.status='me_falta'
-
-AND us.user_id<>$1
-
-AND us.sticker_id IN (
-
-    SELECT sticker_id
-
-    FROM user_stickers
-
-    WHERE user_id=$1
-
-    AND status='repetida'
-
-)
-
-ORDER BY s.team,s.number
-      `,
-      [meId],
-    );
+  FROM user_stickers AS us
+  INNER JOIN stickers AS s
+    ON s.id = us.sticker_id
+  WHERE us.status = 'me_falta'
+    AND us.user_id <> $1
+    AND EXISTS (
+      SELECT 1
+      FROM user_stickers AS mine
+      WHERE mine.user_id = $1
+        AND mine.sticker_id = us.sticker_id
+        AND mine.status = 'repetida'
+    )
+  ORDER BY s.team, s.number
+  `,
+  [Number(meId)],
+);
 
     const byUser = new Map();
     const ensureUser = (userId) => {
