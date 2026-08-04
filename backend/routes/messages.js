@@ -27,22 +27,22 @@ router.get("/conversations", requireAuth, async (req, res) => {
     const result = await pool.query(
       `
       SELECT DISTINCT ON (other_user_id)
-        other_user_id AS id,
-        username,
-        body AS last_message,
-        created_at AS last_message_at
-      FROM (
-        SELECT
-          CASE
-            WHEN m.sender_id = $1 THEN m.receiver_id
-            ELSE m.sender_id
-          END AS other_user_id,
+  other_user_id AS id,
+  username,
+  content AS last_message,
+  created_at AS last_message_at
+FROM (
+  SELECT
+    CASE
+      WHEN m.sender_id = $1 THEN m.receiver_id
+      ELSE m.sender_id
+      END AS other_user_id,
 
-          TRIM(u.username) AS username,
-          m.body,
-          m.created_at
+      TRIM(u.username) AS username,
+      m.content,
+      m.created_at
 
-        FROM messages m
+      FROM messages m
 
         JOIN users u
           ON u.id = CASE
@@ -128,14 +128,14 @@ router.get("/:userId", requireAuth, async (req, res) => {
     const messagesResult = await pool.query(
       `
       SELECT
-        m.id,
-        m.trade_request_id,
-        m.sender_id,
-        m.receiver_id,
-        m.body,
-        m.created_at,
-        TRIM(sender.username) AS sender_username,
-        TRIM(receiver.username) AS receiver_username
+      m.id,
+      m.trade_request_id,
+      m.sender_id,
+      m.receiver_id,
+      m.content AS body,
+      m.created_at,
+      TRIM(sender.username) AS sender_username,
+      TRIM(receiver.username) AS receiver_username
 
       FROM messages m
 
