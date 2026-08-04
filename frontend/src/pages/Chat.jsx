@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ChatList from "../components/chats/ChatList";
 import ChatWindow from "../components/chats/ChatWindow";
 import {
@@ -6,16 +7,15 @@ import {
   getMessages,
   sendMessage,
 } from "../services/messageService.js";
-import "./Chat.css";
 import {
   connectSocket,
   disconnectSocket,
 } from "../socket.js";
+import "./Chat.css";
 
 function getAuthenticatedUser() {
   try {
     const storedUser = localStorage.getItem("figuritas_user");
-
     return storedUser ? JSON.parse(storedUser) : null;
   } catch (error) {
     console.error("No se pudo leer el usuario guardado:", error);
@@ -24,15 +24,10 @@ function getAuthenticatedUser() {
 }
 
 function formatTime(dateValue) {
-  if (!dateValue) {
-    return "";
-  }
+  if (!dateValue) return "";
 
   const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
+  if (Number.isNaN(date.getTime())) return "";
 
   return date.toLocaleTimeString("es-AR", {
     hour: "2-digit",
@@ -43,13 +38,9 @@ function formatTime(dateValue) {
 function normalizeConversation(conversation) {
   return {
     id: Number(conversation.id),
-    username:
-      conversation.username?.trim() || "Coleccionista",
-    lastMessage:
-      conversation.last_message || "Sin mensajes todavía",
-    lastMessageAt: formatTime(
-      conversation.last_message_at
-    ),
+    username: conversation.username?.trim() || "Coleccionista",
+    lastMessage: conversation.last_message || "Sin mensajes todavía",
+    lastMessageAt: formatTime(conversation.last_message_at),
     unread: Number(conversation.unread || 0),
     online: Boolean(conversation.online),
   };
@@ -67,31 +58,40 @@ function normalizeMessage(message) {
   };
 }
 
-export default function Chat() {
-  const authenticatedUser = useMemo(
-    () => getAuthenticatedUser(),
-    []
-  );
+function createTemporaryConversation(userId, username, onlineUserIds) {
+  return {
+    id: Number(userId),
+    username: username?.trim() || "Coleccionista",
+    lastMessage: "Sin mensajes todavía",
+    lastMessageAt: "",
+    unread: 0,
+    online: onlineUserIds.includes(Number(userId)),
+    temporary: true,
+  };
+}
 
-  const authenticatedUserId = Number(
-    authenticatedUser?.id
-  );
+export default function Chat() {
+  const [searchParams] = useSearchParams();
+
+  const requestedUserId = Number(searchParams.get("userId"));
+  const requestedUsername = searchParams.get("username") || "Coleccionista";
+
+  const authenticatedUser = useMemo(() => getAuthenticatedUser(), []);
+  const authenticatedUserId = Number(authenticatedUser?.id);
 
   const [conversations, setConversations] = useState([]);
-  const [selectedUserId, setSelectedUserId] =
-    useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [messages, setMessages] = useState([]);
-
-  const [loadingConversations, setLoadingConversations] =
-    useState(true);
-  const [loadingMessages, setLoadingMessages] =
-    useState(false);
-  const [sendingMessage, setSendingMessage] =
-    useState(false);
-
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState("");
-
   const [onlineUserIds, setOnlineUserIds] = useState([]);
+
+  const hasRequestedUser =
+    Number.isInteger(requestedUserId) &&
+    requestedUserId > 0 &&
+    requestedUserId !== authenticatedUserId;
 
   const loadConversations = useCallback(async () => {
     try {
@@ -100,47 +100,73 @@ export default function Chat() {
 
       const data = await getConversations();
 
-      const normalizedConversations = (
-        data.conversations || []
-      ).map((conversation) => {
-        const normalized = normalizeConversation(conversation);
+      let normalizedConversations = (data.conversations || []).map(
+        (conversation) => {
+          const normalized = normalizeConversation(conversation);
+          return {
+            ...normalized,
+            online: onlineUserIds.includes(normalized.id),
+          };
+        },
+      );
 
-        return {
-          ...normalized,
-          online: onlineUserIds.includes(normalized.id),
-        };
-      });
+      if (
+        hasRequestedUser &&
+        !normalizedConversations.some(
+          (conversation) => conversation.id === requestedUserId,
+        )
+      ) {
+        normalizedConversations = [
+          createTemporaryConversation(
+            requestedUserId,
+            requestedUsername,
+            onlineUserIds,
+          ),
+          ...normalizedConversations,
+        ];
+      }
 
       setConversations(normalizedConversations);
 
       setSelectedUserId((currentUserId) => {
-        const currentConversationStillExists =
-          normalizedConversations.some(
-            (conversation) =>
-              conversation.id === Number(currentUserId)
-          );
+        if (hasRequestedUser) return requestedUserId;
 
-        if (currentConversationStillExists) {
-          return currentUserId;
-        }
+        const currentConversationStillExists = normalizedConversations.some(
+          (conversation) =>
+            conversation.id === Number(currentUserId),
+        );
 
+        if (currentConversationStillExists) return currentUserId;
         return normalizedConversations[0]?.id || null;
       });
     } catch (requestError) {
-      console.error(
-        "Error al cargar conversaciones:",
-        requestError
-      );
+      console.error("Error al cargar conversaciones:", requestError);
+
+      if (hasRequestedUser) {
+        const temporaryConversation = createTemporaryConversation(
+          requestedUserId,
+          requestedUsername,
+          onlineUserIds,
+        );
+
+        setConversations([temporaryConversation]);
+        setSelectedUserId(requestedUserId);
+      }
 
       setError(
         requestError.response?.data?.message ||
-        requestError.response?.data?.error ||
-        "No se pudieron cargar las conversaciones."
+          requestError.response?.data?.error ||
+          "No se pudieron cargar las conversaciones.",
       );
     } finally {
       setLoadingConversations(false);
     }
-  }, [onlineUserIds]);
+  }, [
+    hasRequestedUser,
+    requestedUserId,
+    requestedUsername,
+    onlineUserIds,
+  ]);
 
   const loadMessages = useCallback(async (userId) => {
     if (!userId) {
@@ -153,22 +179,14 @@ export default function Chat() {
       setError("");
 
       const data = await getMessages(userId);
-
-      const normalizedMessages = (
-        data.messages || []
-      ).map(normalizeMessage);
-
-      setMessages(normalizedMessages);
+      setMessages((data.messages || []).map(normalizeMessage));
     } catch (requestError) {
-      console.error(
-        "Error al cargar mensajes:",
-        requestError
-      );
-
+      console.error("Error al cargar mensajes:", requestError);
+      setMessages([]);
       setError(
         requestError.response?.data?.message ||
-        requestError.response?.data?.error ||
-        "No se pudieron cargar los mensajes."
+          requestError.response?.data?.error ||
+          "No se pudieron cargar los mensajes.",
       );
     } finally {
       setLoadingMessages(false);
@@ -176,36 +194,33 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    loadConversations();
+    void loadConversations();
   }, [loadConversations]);
+
   useEffect(() => {
     const token = localStorage.getItem("figuritas_token");
-
-    if (!token) return;
+    if (!token) return undefined;
 
     const socket = connectSocket(token);
-
-    if (!socket) return;
+    if (!socket) return undefined;
 
     const handlePresenceList = (users) => {
-      setOnlineUserIds(users.map(Number));
+      setOnlineUserIds(Array.isArray(users) ? users.map(Number) : []);
     };
 
     const handleUserOnline = (userId) => {
-      userId = Number(userId);
-
+      const normalizedUserId = Number(userId);
       setOnlineUserIds((current) =>
-        current.includes(userId)
+        current.includes(normalizedUserId)
           ? current
-          : [...current, userId]
+          : [...current, normalizedUserId],
       );
     };
 
     const handleUserOffline = (userId) => {
-      userId = Number(userId);
-
+      const normalizedUserId = Number(userId);
       setOnlineUserIds((current) =>
-        current.filter((id) => id !== userId)
+        current.filter((id) => id !== normalizedUserId),
       );
     };
 
@@ -217,48 +232,36 @@ export default function Chat() {
       socket.off("presence:list", handlePresenceList);
       socket.off("presence:online", handleUserOnline);
       socket.off("presence:offline", handleUserOffline);
-
       disconnectSocket();
     };
   }, []);
-  
+
   useEffect(() => {
     setConversations((current) =>
       current.map((conversation) => ({
         ...conversation,
-        online: onlineUserIds.includes(
-          Number(conversation.id)
-        ),
-      }))
+        online: onlineUserIds.includes(Number(conversation.id)),
+      })),
     );
   }, [onlineUserIds]);
 
-  /* Mensajes en tiempo real */
   useEffect(() => {
     const token = localStorage.getItem("figuritas_token");
-
-    if (!token) {
-      return undefined;
-    }
+    if (!token) return undefined;
 
     const socket = connectSocket(token);
-
-    if (!socket) {
-      return undefined;
-    }
+    if (!socket) return undefined;
 
     const handleIncomingMessage = (message) => {
       const normalizedMessage = normalizeMessage(message);
       const senderId = Number(normalizedMessage.senderId);
-      const isCurrentConversation =
-        senderId === Number(selectedUserId);
+      const isCurrentConversation = senderId === Number(selectedUserId);
 
       if (isCurrentConversation) {
         setMessages((currentMessages) => {
           const alreadyExists = currentMessages.some(
             (currentMessage) =>
-              Number(currentMessage.id) ===
-              Number(normalizedMessage.id)
+              Number(currentMessage.id) === Number(normalizedMessage.id),
           );
 
           return alreadyExists
@@ -268,14 +271,12 @@ export default function Chat() {
       }
 
       setConversations((currentConversations) => {
-        const conversationExists =
-          currentConversations.some(
-            (conversation) =>
-              Number(conversation.id) === senderId
-          );
+        const conversationExists = currentConversations.some(
+          (conversation) => Number(conversation.id) === senderId,
+        );
 
         if (!conversationExists) {
-          loadConversations();
+          void loadConversations();
           return currentConversations;
         }
 
@@ -288,8 +289,9 @@ export default function Chat() {
                 unread: isCurrentConversation
                   ? 0
                   : Number(conversation.unread || 0) + 1,
+                temporary: false,
               }
-            : conversation
+            : conversation,
         );
       });
     };
@@ -298,8 +300,7 @@ export default function Chat() {
       const normalizedMessage = normalizeMessage(message);
 
       if (
-        Number(normalizedMessage.receiverId) !==
-        Number(selectedUserId)
+        Number(normalizedMessage.receiverId) !== Number(selectedUserId)
       ) {
         return;
       }
@@ -307,8 +308,7 @@ export default function Chat() {
       setMessages((currentMessages) => {
         const alreadyExists = currentMessages.some(
           (currentMessage) =>
-            Number(currentMessage.id) ===
-            Number(normalizedMessage.id)
+            Number(currentMessage.id) === Number(normalizedMessage.id),
         );
 
         return alreadyExists
@@ -327,12 +327,11 @@ export default function Chat() {
   }, [selectedUserId, loadConversations]);
 
   useEffect(() => {
-    loadMessages(selectedUserId);
+    void loadMessages(selectedUserId);
   }, [selectedUserId, loadMessages]);
 
   const selectedConversation = conversations.find(
-    (conversation) =>
-      conversation.id === Number(selectedUserId)
+    (conversation) => conversation.id === Number(selectedUserId),
   );
 
   const handleSelectConversation = (conversationId) => {
@@ -341,68 +340,71 @@ export default function Chat() {
     setConversations((currentConversations) =>
       currentConversations.map((conversation) =>
         conversation.id === Number(conversationId)
-          ? {
-            ...conversation,
-            unread: 0,
-          }
-          : conversation
-      )
+          ? { ...conversation, unread: 0 }
+          : conversation,
+      ),
     );
   };
 
   const handleSendMessage = async (body) => {
     const cleanBody = String(body || "").trim();
 
-    if (
-      !cleanBody ||
-      !selectedUserId ||
-      sendingMessage
-    ) {
-      return;
-    }
+    if (!cleanBody || !selectedUserId || sendingMessage) return;
 
     try {
       setSendingMessage(true);
       setError("");
 
-      const data = await sendMessage(
-        selectedUserId,
-        cleanBody
-      );
+      const data = await sendMessage(selectedUserId, cleanBody);
+      const createdMessage = normalizeMessage(data.message);
 
-      const createdMessage = normalizeMessage(
-        data.message
-      );
+      setMessages((currentMessages) => {
+        const alreadyExists = currentMessages.some(
+          (currentMessage) =>
+            Number(currentMessage.id) === Number(createdMessage.id),
+        );
 
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        createdMessage,
-      ]);
+        return alreadyExists
+          ? currentMessages
+          : [...currentMessages, createdMessage];
+      });
 
-      setConversations((currentConversations) =>
-        currentConversations.map((conversation) =>
+      setConversations((currentConversations) => {
+        const exists = currentConversations.some(
+          (conversation) =>
+            conversation.id === Number(selectedUserId),
+        );
+
+        const updatedConversation = {
+          id: Number(selectedUserId),
+          username:
+            selectedConversation?.username ||
+            requestedUsername ||
+            "Coleccionista",
+          lastMessage: createdMessage.body,
+          lastMessageAt: createdMessage.createdAt,
+          unread: 0,
+          online: onlineUserIds.includes(Number(selectedUserId)),
+          temporary: false,
+        };
+
+        if (!exists) {
+          return [updatedConversation, ...currentConversations];
+        }
+
+        return currentConversations.map((conversation) =>
           conversation.id === Number(selectedUserId)
-            ? {
-              ...conversation,
-              lastMessage: createdMessage.body,
-              lastMessageAt:
-                createdMessage.createdAt,
-            }
-            : conversation
-        )
-      );
+            ? { ...conversation, ...updatedConversation }
+            : conversation,
+        );
+      });
     } catch (requestError) {
-      console.error(
-        "Error al enviar el mensaje:",
-        requestError
-      );
-
+      console.error("Error al enviar el mensaje:", requestError);
       setError(
         requestError.response?.data?.message ||
-        requestError.response?.data?.error ||
-        "No se pudo enviar el mensaje."
+          requestError.response?.data?.error ||
+          "No se pudo enviar el mensaje.",
       );
-
       throw requestError;
     } finally {
       setSendingMessage(false);
@@ -413,15 +415,9 @@ export default function Chat() {
     <section className="chat-page-content">
       <div className="chat-page-inner">
         <div className="page-heading">
-          <span className="page-eyebrow">
-            Conversaciones
-          </span>
-
+          <span className="page-eyebrow">Conversaciones</span>
           <h1>Chat de intercambios</h1>
-
-          <p>
-            Hablá con otros coleccionistas y coordiná tus cambios.
-          </p>
+          <p>Hablá con otros coleccionistas y coordiná tus cambios.</p>
         </div>
 
         {error && (
@@ -438,8 +434,11 @@ export default function Chat() {
           </div>
         ) : (
           <div
-            className={`premium-chat ${conversations.length === 0 ? "premium-chat-empty-list" : ""
-              }`}
+            className={`premium-chat ${
+              conversations.length === 0
+                ? "premium-chat-empty-list"
+                : ""
+            }`}
           >
             <ChatList
               conversations={conversations}
