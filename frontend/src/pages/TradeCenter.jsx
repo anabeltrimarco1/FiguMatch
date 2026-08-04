@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  acceptTradeRequest,
+  cancelTradeRequest,
   getReceivedTradeRequests,
   getSentTradeRequests,
+  rejectTradeRequest,
 } from "../services/tradeService.js";
 import "./TradeCenter.css";
 
@@ -13,12 +16,8 @@ const TABS = [
 
 function formatDate(value) {
   if (!value) return "Sin fecha";
-
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Sin fecha";
-  }
+  if (Number.isNaN(date.getTime())) return "Sin fecha";
 
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
@@ -30,32 +29,20 @@ function formatDate(value) {
 }
 
 function getStatusConfig(status) {
-  const normalized = String(status || "pending").toLowerCase();
+  const value = String(status || "pending").toLowerCase();
 
-  const configs = {
-    pending: {
+  return (
+    {
+      pending: { label: "Pendiente", icon: "⏳", className: "pending" },
+      accepted: { label: "Aceptada", icon: "✅", className: "accepted" },
+      rejected: { label: "Rechazada", icon: "❌", className: "rejected" },
+      cancelled: { label: "Cancelada", icon: "🚫", className: "cancelled" },
+    }[value] || {
       label: "Pendiente",
       icon: "⏳",
       className: "pending",
-    },
-    accepted: {
-      label: "Aceptada",
-      icon: "✅",
-      className: "accepted",
-    },
-    rejected: {
-      label: "Rechazada",
-      icon: "❌",
-      className: "rejected",
-    },
-    cancelled: {
-      label: "Cancelada",
-      icon: "🚫",
-      className: "cancelled",
-    },
-  };
-
-  return configs[normalized] || configs.pending;
+    }
+  );
 }
 
 function TradeSticker({ title, stickerId, type }) {
@@ -76,9 +63,13 @@ function TradeSticker({ title, stickerId, type }) {
 function TradeRequestCard({
   request,
   activeTab,
+  busyAction,
+  onAction,
   onOpenChat,
 }) {
   const status = getStatusConfig(request.status);
+  const pending = status.className === "pending";
+  const busy = busyAction?.requestId === Number(request.id);
 
   const otherUserId =
     activeTab === "received"
@@ -101,7 +92,7 @@ function TradeRequestCard({
       : request.offered_sticker_id;
 
   return (
-    <article className="trade-center-card">
+    <article className={`trade-center-card ${status.className}`}>
       <header className="trade-center-card-header">
         <div className="trade-center-user">
           <div className="trade-center-avatar" aria-hidden="true">
@@ -114,9 +105,7 @@ function TradeRequestCard({
                 ? "PROPUESTA RECIBIDA"
                 : "PROPUESTA ENVIADA"}
             </span>
-
             <h2>{otherUsername?.trim() || "Coleccionista"}</h2>
-
             <p>{formatDate(request.created_at)}</p>
           </div>
         </div>
@@ -146,27 +135,58 @@ function TradeRequestCard({
       </div>
 
       <footer className="trade-center-card-footer">
-        <div className="trade-center-request-number">
+        <span className="trade-center-request-number">
           Solicitud #{request.id}
-        </div>
+        </span>
 
         <div className="trade-center-actions">
           <button
             type="button"
             className="trade-center-chat-button"
-            onClick={() =>
-              onOpenChat(otherUserId, otherUsername)
-            }
+            onClick={() => onOpenChat(otherUserId, otherUsername)}
+            disabled={busy}
           >
             💬 Abrir chat
           </button>
 
-          {status.className === "pending" &&
-            activeTab === "received" && (
-              <span className="trade-center-next-step">
-                Aceptar/Rechazar se agrega en Sprint 6.2.2
-              </span>
-            )}
+          {pending && activeTab === "received" && (
+            <>
+              <button
+                type="button"
+                className="trade-center-action-button accept"
+                disabled={busy}
+                onClick={() => onAction(request, "accept")}
+              >
+                {busy && busyAction.action === "accept"
+                  ? "Aceptando..."
+                  : "✅ Aceptar"}
+              </button>
+
+              <button
+                type="button"
+                className="trade-center-action-button reject"
+                disabled={busy}
+                onClick={() => onAction(request, "reject")}
+              >
+                {busy && busyAction.action === "reject"
+                  ? "Rechazando..."
+                  : "❌ Rechazar"}
+              </button>
+            </>
+          )}
+
+          {pending && activeTab === "sent" && (
+            <button
+              type="button"
+              className="trade-center-action-button cancel"
+              disabled={busy}
+              onClick={() => onAction(request, "cancel")}
+            >
+              {busy && busyAction.action === "cancel"
+                ? "Cancelando..."
+                : "🚫 Cancelar"}
+            </button>
+          )}
         </div>
       </footer>
     </article>
@@ -181,6 +201,8 @@ export default function TradeCenter() {
   const [sent, setSent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [busyAction, setBusyAction] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const loadTradeRequests = useCallback(async () => {
     setLoading(true);
@@ -221,6 +243,12 @@ export default function TradeCenter() {
     loadTradeRequests();
   }, [loadTradeRequests]);
 
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timeoutId = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
+
   const currentRequests =
     activeTab === "received" ? received : sent;
 
@@ -242,9 +270,7 @@ export default function TradeCenter() {
   }, [received, sent]);
 
   const handleOpenChat = (userId, username) => {
-    if (!Number.isInteger(Number(userId)) || Number(userId) <= 0) {
-      return;
-    }
+    if (!Number.isInteger(Number(userId)) || Number(userId) <= 0) return;
 
     navigate(
       `/chat?userId=${Number(userId)}&username=${encodeURIComponent(
@@ -253,20 +279,88 @@ export default function TradeCenter() {
     );
   };
 
+  const updateRequestStatus = (requestId, status) => {
+    const updateList = (items) =>
+      items.map((request) =>
+        Number(request.id) === Number(requestId)
+          ? {
+              ...request,
+              status,
+              updated_at: new Date().toISOString(),
+            }
+          : request,
+      );
+
+    setReceived(updateList);
+    setSent(updateList);
+  };
+
+  const handleTradeAction = async (request, action) => {
+    const actions = {
+      accept: {
+        confirm: "¿Querés aceptar esta propuesta de intercambio?",
+        success: "Intercambio aceptado correctamente.",
+        status: "accepted",
+        execute: acceptTradeRequest,
+      },
+      reject: {
+        confirm: "¿Querés rechazar esta propuesta?",
+        success: "Solicitud rechazada.",
+        status: "rejected",
+        execute: rejectTradeRequest,
+      },
+      cancel: {
+        confirm: "¿Querés cancelar la solicitud enviada?",
+        success: "Solicitud cancelada.",
+        status: "cancelled",
+        execute: cancelTradeRequest,
+      },
+    };
+
+    const selected = actions[action];
+
+    if (!selected || !window.confirm(selected.confirm)) return;
+
+    try {
+      setBusyAction({
+        requestId: Number(request.id),
+        action,
+      });
+
+      await selected.execute(request.id);
+      updateRequestStatus(request.id, selected.status);
+
+      setToast({
+        type: "success",
+        message: selected.success,
+      });
+    } catch (requestError) {
+      console.error("TRADE ACTION ERROR:", requestError);
+
+      setToast({
+        type: "error",
+        message:
+          requestError?.response?.data?.error ||
+          requestError?.response?.data?.message ||
+          requestError?.message ||
+          "No se pudo actualizar la solicitud.",
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
   return (
     <main className="trade-center-page">
       <section className="trade-center-container">
         <header className="trade-center-hero">
           <div>
             <span className="trade-center-eyebrow">
-              SPRINT 6.2.1
+              SPRINT 6.2.2
             </span>
-
             <h1>Centro de Intercambios</h1>
-
             <p>
-              Revisá tus propuestas recibidas y enviadas desde un
-              único lugar.
+              Aceptá, rechazá o cancelá propuestas desde un único lugar.
             </p>
           </div>
 
@@ -275,17 +369,14 @@ export default function TradeCenter() {
               <strong>{summary.received}</strong>
               <span>Recibidas</span>
             </article>
-
             <article>
               <strong>{summary.sent}</strong>
               <span>Enviadas</span>
             </article>
-
             <article>
               <strong>{summary.pending}</strong>
               <span>Pendientes</span>
             </article>
-
             <article>
               <strong>{summary.completed}</strong>
               <span>Aceptadas</span>
@@ -298,18 +389,13 @@ export default function TradeCenter() {
             <button
               key={tab.id}
               type="button"
-              className={
-                activeTab === tab.id ? "active" : ""
-              }
+              className={activeTab === tab.id ? "active" : ""}
               onClick={() => setActiveTab(tab.id)}
             >
               <span aria-hidden="true">{tab.icon}</span>
               {tab.label}
-
               <strong>
-                {tab.id === "received"
-                  ? received.length
-                  : sent.length}
+                {tab.id === "received" ? received.length : sent.length}
               </strong>
             </button>
           ))}
@@ -318,7 +404,6 @@ export default function TradeCenter() {
         {error && (
           <div className="trade-center-error" role="alert">
             <span>{error}</span>
-
             <button type="button" onClick={loadTradeRequests}>
               Reintentar
             </button>
@@ -334,22 +419,16 @@ export default function TradeCenter() {
         ) : currentRequests.length === 0 ? (
           <section className="trade-center-state">
             <span className="trade-center-state-icon">🤝</span>
-
             <h2>
               {activeTab === "received"
                 ? "Todavía no recibiste propuestas"
                 : "Todavía no enviaste propuestas"}
             </h2>
-
             <p>
-              Buscá coleccionistas compatibles y comenzá tu
-              próximo intercambio.
+              Buscá coleccionistas compatibles y comenzá tu próximo
+              intercambio.
             </p>
-
-            <button
-              type="button"
-              onClick={() => navigate("/matches")}
-            >
+            <button type="button" onClick={() => navigate("/matches")}>
               Encontrar matches
             </button>
           </section>
@@ -360,12 +439,26 @@ export default function TradeCenter() {
                 key={request.id}
                 request={request}
                 activeTab={activeTab}
+                busyAction={busyAction}
+                onAction={handleTradeAction}
                 onOpenChat={handleOpenChat}
               />
             ))}
           </section>
         )}
       </section>
+
+      {toast && (
+        <div
+          className={`trade-center-toast ${toast.type}`}
+          role="status"
+        >
+          <span aria-hidden="true">
+            {toast.type === "success" ? "✅" : "⚠️"}
+          </span>
+          <span>{toast.message}</span>
+        </div>
+      )}
     </main>
   );
 }

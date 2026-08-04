@@ -458,3 +458,125 @@
     text-align: center;
   }
 }
+
+/* =========================================================
+   SPRINT 6.2.2 — ACCIONES ACTIVAS
+   ========================================================= */
+
+.trade-center-card.pending {
+  border-left: 4px solid #facc15;
+}
+
+.trade-center-card.accepted {
+  border-left: 4px solid #4ade80;
+}
+
+.trade-center-card.rejected {
+  border-left: 4px solid #fb7185;
+}
+
+.trade-center-card.cancelled {
+  border-left: 4px solid #94a3b8;
+}
+
+.trade-center-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.trade-center-action-button {
+  min-height: 43px;
+  border-radius: 13px;
+  padding: 0 17px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.trade-center-action-button.accept {
+  border: 0;
+  background: #4ade80;
+  color: #06130b;
+}
+
+.trade-center-action-button.reject {
+  border: 1px solid rgba(248, 113, 113, 0.32);
+  background: rgba(127, 29, 29, 0.28);
+  color: #fecaca;
+}
+
+.trade-center-action-button.cancel {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: #283247;
+  color: #e2e8f0;
+}
+
+.trade-center-action-button:hover:not(:disabled),
+.trade-center-chat-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.trade-center-action-button:disabled,
+.trade-center-chat-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.trade-center-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  display: flex;
+  max-width: min(420px, calc(100% - 32px));
+  align-items: center;
+  gap: 11px;
+  padding: 15px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  color: #ffffff;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.36);
+  animation: trade-toast-in 0.22s ease-out;
+}
+
+.trade-center-toast.success {
+  background: #166534;
+}
+
+.trade-center-toast.error {
+  background: #991b1b;
+}
+
+@keyframes trade-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .trade-center-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .trade-center-chat-button,
+  .trade-center-action-button {
+    width: 100%;
+  }
+
+  .trade-center-toast {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+  }
+}
