@@ -62,6 +62,9 @@ ON s.id = us.sticker_id
 
 WHERE us.status='repetida'
 
+console.log("ellosMeDan:", ellosMeDan.rows.length);
+console.log("yoLesDoy:", yoLesDoy.rows.length);
+
 AND us.user_id<>$1
 
 AND us.sticker_id IN (
@@ -73,7 +76,8 @@ AND us.sticker_id IN (
     WHERE user_id=$1
 
     AND status='me_falta'
-
+console.log("ellosMeDan:", ellosMeDan.rows.length);
+console.log("yoLesDoy:", yoLesDoy.rows.length);
 )
 
 ORDER BY s.team,s.number
@@ -346,7 +350,7 @@ router.post("/request", requireAuth, async (req, res) => {
           AND receiver_id = $2
           AND offered_sticker_id = $3
           AND requested_sticker_id = $4
-          AND status = 'pendiente'
+          AND status = 'pending'
         `,
         [requesterId, receiverId, offeredStickerId, requestedStickerId],
       );
@@ -364,7 +368,7 @@ router.post("/request", requireAuth, async (req, res) => {
           requested_sticker_id,
           status
         )
-        VALUES ($1, $2, $3, $4, 'pendiente')
+        VALUES ($1, $2, $3, $4, 'pending')
         RETURNING
           id,
           requester_id,
