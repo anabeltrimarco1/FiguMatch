@@ -7,6 +7,8 @@ export default function ChatWindow({
   messages,
   authenticatedUserId,
   onSendMessage,
+  isLoading = false,
+  isSending = false,
 }) {
   const messagesEndRef = useRef(null);
 
@@ -69,7 +71,12 @@ export default function ChatWindow({
           <span>Hoy</span>
         </div>
 
-        {messages.length === 0 ? (
+        {isLoading ? (
+          <div className="chat-loading">
+            <span aria-hidden="true">💬</span>
+            <p>Cargando mensajes...</p>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="premium-chat-first-message">
             <span aria-hidden="true">👋</span>
             <strong>Comenzá la conversación</strong>
@@ -93,7 +100,10 @@ export default function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      <MessageInput onSendMessage={onSendMessage} />
+      <MessageInput
+        onSendMessage={onSendMessage}
+        isSending={isSending}
+      />
     </section>
   );
 }

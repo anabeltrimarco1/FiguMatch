@@ -300,10 +300,9 @@ router.post("/", requireAuth, async (req, res) => {
     const result = await pool.query(
       `
       INSERT INTO messages (
-      trade_request_id,
-      sender_id,
-      
-      content
+       sender_id,
+       receiver_id,
+       content
     )
     VALUES ($1, $2, $3, $4)
 
