@@ -90,41 +90,66 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    /*
+     * El username distingue mayúsculas y minúsculas:
+     * JOACO, Joaco y joaco pueden ser usuarios diferentes.
+     *
+     * El email no distingue mayúsculas y minúsculas.
+     */
     const existing = await query(
       `
       SELECT id
       FROM users
-      WHERE LOWER(TRIM(username)) = LOWER($1)
+      WHERE TRIM(username) = $1
          OR LOWER(TRIM(email)) = LOWER($2)
+      LIMIT 1
       `,
       [username, email],
     );
 
     if (existing.rows.length > 0) {
       return res.status(409).json({
-        error: "Usuario o email ya registrado",
+        error: "El usuario exacto o el email ya están registrados",
       });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const result = await query(
+    const insertResult = await query(
       `
-      INSERT INTO users (username, email, password_hash)
+      INSERT INTO users (
+        username,
+        email,
+        password_hash
+      )
       VALUES ($1, $2, $3)
-      RETURNING id, username, email, created_at
+      RETURNING
+        id,
+        username,
+        email,
+        created_at
       `,
       [username, email, passwordHash],
     );
 
-    const user = result.rows[0];
+    const user = insertResult.rows[0];
 
     await query(
       `
-      INSERT INTO user_stickers (user_id, sticker_id, status, quantity)
-      SELECT $1, id, 'me_falta', 0
+      INSERT INTO user_stickers (
+        user_id,
+        sticker_id,
+        status,
+        quantity
+      )
+      SELECT
+        $1,
+        id,
+        'me_falta',
+        0
       FROM stickers
-      ON CONFLICT (user_id, sticker_id) DO NOTHING
+      ON CONFLICT (user_id, sticker_id)
+      DO NOTHING
       `,
       [user.id],
     );
@@ -136,42 +161,54 @@ router.post("/register", async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("ERROR LOGIN COMPLETO:", error);
+    console.error("ERROR REGISTER:", error);
 
     return res.status(500).json({
-    error: error.message,
-    stack: error.stack,
-  });
-}
+      error: "Error al registrar el usuario",
+    });
+  }
 });
 
 // LOGIN
 router.post("/login", async (req, res) => {
   try {
-    const username = req.body.username?.trim();
+    const usernameOrEmail = req.body.username?.trim();
     const password = req.body.password;
 
-    if (!username || !password) {
+    if (!usernameOrEmail || !password) {
       return res.status(400).json({
         error: "Faltan credenciales",
       });
     }
 
+    /*
+     * Username: comparación exacta, distingue mayúsculas.
+     * Email: comparación sin distinguir mayúsculas.
+     *
+     * Ejemplo:
+     * JOACO solo inicia sesión escribiendo JOACO.
+     * Joaco y joaco se consideran cuentas diferentes.
+     */
     const result = await query(
       `
-      SELECT id, username, email, password_hash
+      SELECT
+        id,
+        username,
+        email,
+        password_hash
       FROM users
-      WHERE LOWER(TRIM(username)) = LOWER($1)
+      WHERE TRIM(username) = $1
          OR LOWER(TRIM(email)) = LOWER($1)
+      LIMIT 1
       `,
-      [username],
+      [usernameOrEmail],
     );
 
     const user = result.rows[0];
 
     if (!user) {
       return res.status(401).json({
-        error: "Credenciales inválidas",
+        error: "Usuario, email o contraseña incorrectos",
       });
     }
 
@@ -182,7 +219,7 @@ router.post("/login", async (req, res) => {
 
     if (!validPassword) {
       return res.status(401).json({
-        error: "Credenciales inválidas",
+        error: "Usuario, email o contraseña incorrectos",
       });
     }
 
@@ -233,7 +270,6 @@ router.post("/forgot-password", async (req, res) => {
 
     const user = result.rows[0];
 
-    // Respuesta genérica para no revelar qué correos están registrados.
     if (!user) {
       return res.json({
         message: genericMessage,
@@ -270,7 +306,6 @@ router.post("/forgot-password", async (req, res) => {
 
     const transporter = createMailTransporter();
 
-    // Verifica la conexión SMTP antes de intentar enviar.
     await transporter.verify();
 
     const safeUsername = escapeHtml(
