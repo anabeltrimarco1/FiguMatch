@@ -29,6 +29,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:5173",
   "https://figu-match-fcju.vercel.app",
+  "https://figu-match-fcju-ja259aifa-coreia.vercel.app",
 ];
 
 /*
