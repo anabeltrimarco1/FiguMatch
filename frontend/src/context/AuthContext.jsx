@@ -3,8 +3,9 @@ import { setAuthToken } from "../api";
 
 const AuthContext = createContext(null);
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.DEV
+  ? "http://localhost:4000"
+  : "https://figumatch-production.up.railway.app";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
