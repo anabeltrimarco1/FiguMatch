@@ -845,3 +845,20 @@
     margin-left: 15px;
   }
 }
+.trade-center-hero {
+  grid-template-columns: minmax(320px, 1fr) minmax(520px, 1.6fr);
+}
+
+.trade-center-hero h1 {
+  max-width: 520px;
+  font-size: clamp(3rem, 5vw, 5.5rem);
+  line-height: 0.98;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.trade-center-hero-title {
+  min-width: 0;
+  width: 100%;
+}

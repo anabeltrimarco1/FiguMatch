@@ -17,7 +17,7 @@ export default function DashboardHero({
         </h1>
 
         <p className="dashboard-welcome-text">
-          Bienvenida nuevamente a FiguMatch.
+          Bienvenido nuevamente a FiguMatch.
 
           Tu álbum está al <strong>{generalProgress}%</strong> y todavía te
           faltan <strong>{stats.missing}</strong> figuritas para completarlo.
