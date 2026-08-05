@@ -2,11 +2,13 @@ import axios from "axios";
 
 console.log("API.JS CARGADO");
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.DEV
+  ? "http://localhost:4000"
+  : "https://figumatch-production.up.railway.app";
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
+  timeout: 15000,
 });
 
 export function setAuthToken(token) {
