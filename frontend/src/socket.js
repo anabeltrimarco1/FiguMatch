@@ -1,8 +1,8 @@
 import { io } from "socket.io-client";
 
-const URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:4000";
+const URL = import.meta.env.DEV
+  ? "http://localhost:4000"
+  : "https://figumatch-production.up.railway.app";
 
 let socket = null;
 
@@ -15,7 +15,7 @@ export function connectSocket(token) {
     auth: {
       token,
     },
-    transports: ["websocket"],
+    transports: ["websocket", "polling"],
   });
 
   return socket;
