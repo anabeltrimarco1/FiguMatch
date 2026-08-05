@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Album from "./pages/Album.jsx";
 import Matches from "./pages/Matches.jsx";
 import Faltantes from "./pages/Faltantes.jsx";
+import Repetidas from "./pages/Repetidas.jsx";
 import Chat from "./pages/Chat.jsx";
 import TradeCenter from "./pages/TradeCenter.jsx";
 
