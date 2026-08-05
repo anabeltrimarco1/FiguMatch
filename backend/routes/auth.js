@@ -7,7 +7,16 @@ import { query } from "../config/db.js";
 
 const router = Router();
 
+const USERNAME_MIN_LENGTH = 3;
+const USERNAME_MAX_LENGTH = 40;
+const PASSWORD_MIN_LENGTH = 6;
+const EMAIL_MAX_LENGTH = 160;
+
 function signToken(user) {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("Falta configurar JWT_SECRET.");
+  }
+
   return jwt.sign(
     {
       userId: user.id,
@@ -16,6 +25,50 @@ function signToken(user) {
     process.env.JWT_SECRET,
     { expiresIn: "7d" },
   );
+}
+
+function normalizeUsername(value) {
+  return String(value || "").trim();
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validateUsername(username) {
+  if (!username) {
+    return "Ingresá un nombre de usuario.";
+  }
+
+  if (username.length < USERNAME_MIN_LENGTH) {
+    return `El usuario debe tener al menos ${USERNAME_MIN_LENGTH} caracteres.`;
+  }
+
+  if (username.length > USERNAME_MAX_LENGTH) {
+    return `El usuario no puede superar los ${USERNAME_MAX_LENGTH} caracteres.`;
+  }
+
+  if (!/^[A-Za-z0-9._-]+$/.test(username)) {
+    return "El usuario solo puede contener letras, números, punto, guion y guion bajo.";
+  }
+
+  return null;
+}
+
+function validatePassword(password) {
+  if (!password) {
+    return "Ingresá una contraseña.";
+  }
+
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+  }
+
+  return null;
 }
 
 function validateMailEnvironment() {
@@ -74,31 +127,39 @@ function escapeHtml(value) {
 // REGISTRO
 router.post("/register", async (req, res) => {
   try {
-    const username = req.body.username?.trim();
-    const email = req.body.email?.trim().toLowerCase();
-    const password = req.body.password;
+    const username = normalizeUsername(req.body.username);
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || "");
 
-    if (!username || !email || !password) {
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      return res.status(400).json({ error: usernameError });
+    }
+
+    if (!email) {
       return res.status(400).json({
-        error: "Faltan campos obligatorios",
+        error: "Ingresá un correo electrónico.",
       });
     }
 
-    if (password.length < 6) {
+    if (email.length > EMAIL_MAX_LENGTH || !isValidEmail(email)) {
       return res.status(400).json({
-        error: "La contraseña debe tener al menos 6 caracteres",
+        error: "Ingresá un correo electrónico válido.",
       });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ error: passwordError });
     }
 
     /*
-     * El username distingue mayúsculas y minúsculas:
-     * JOACO, Joaco y joaco pueden ser usuarios diferentes.
-     *
-     * El email no distingue mayúsculas y minúsculas.
+     * Username: comparación exacta y sensible a mayúsculas.
+     * Email: comparación sin distinguir mayúsculas.
      */
     const existing = await query(
       `
-      SELECT id
+      SELECT id, username, email
       FROM users
       WHERE TRIM(username) = $1
          OR LOWER(TRIM(email)) = LOWER($2)
@@ -108,12 +169,20 @@ router.post("/register", async (req, res) => {
     );
 
     if (existing.rows.length > 0) {
+      const found = existing.rows[0];
+
+      if (found.username === username) {
+        return res.status(409).json({
+          error: "Ese nombre de usuario ya está registrado.",
+        });
+      }
+
       return res.status(409).json({
-        error: "El usuario exacto o el email ya están registrados",
+        error: "Ese correo electrónico ya está registrado.",
       });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const insertResult = await query(
       `
@@ -159,12 +228,19 @@ router.post("/register", async (req, res) => {
     return res.status(201).json({
       token,
       user,
+      message: "Cuenta creada correctamente.",
     });
   } catch (error) {
     console.error("ERROR REGISTER:", error);
 
+    if (error?.code === "23505") {
+      return res.status(409).json({
+        error: "El usuario o el correo ya están registrados.",
+      });
+    }
+
     return res.status(500).json({
-      error: "Error al registrar el usuario",
+      error: "No se pudo crear la cuenta. Intentá nuevamente.",
     });
   }
 });
@@ -172,22 +248,18 @@ router.post("/register", async (req, res) => {
 // LOGIN
 router.post("/login", async (req, res) => {
   try {
-    const usernameOrEmail = req.body.username?.trim();
-    const password = req.body.password;
+    const usernameOrEmail = normalizeUsername(req.body.username);
+    const password = String(req.body.password || "");
 
     if (!usernameOrEmail || !password) {
       return res.status(400).json({
-        error: "Faltan credenciales",
+        error: "Ingresá tu usuario o correo y tu contraseña.",
       });
     }
 
     /*
      * Username: comparación exacta, distingue mayúsculas.
      * Email: comparación sin distinguir mayúsculas.
-     *
-     * Ejemplo:
-     * JOACO solo inicia sesión escribiendo JOACO.
-     * Joaco y joaco se consideran cuentas diferentes.
      */
     const result = await query(
       `
@@ -208,7 +280,7 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
-        error: "Usuario, email o contraseña incorrectos",
+        error: "Usuario, correo o contraseña incorrectos.",
       });
     }
 
@@ -219,7 +291,7 @@ router.post("/login", async (req, res) => {
 
     if (!validPassword) {
       return res.status(401).json({
-        error: "Usuario, email o contraseña incorrectos",
+        error: "Usuario, correo o contraseña incorrectos.",
       });
     }
 
@@ -230,12 +302,13 @@ router.post("/login", async (req, res) => {
     return res.json({
       token,
       user,
+      message: "Inicio de sesión correcto.",
     });
   } catch (error) {
     console.error("ERROR LOGIN:", error);
 
     return res.status(500).json({
-      error: "Error al iniciar sesión",
+      error: "No se pudo iniciar sesión. Intentá nuevamente.",
     });
   }
 });
@@ -248,11 +321,17 @@ router.post("/forgot-password", async (req, res) => {
   let userId = null;
 
   try {
-    const email = req.body.email?.trim().toLowerCase();
+    const email = normalizeEmail(req.body.email);
 
     if (!email) {
       return res.status(400).json({
         error: "Ingresá tu correo electrónico.",
+      });
+    }
+
+    if (email.length > EMAIL_MAX_LENGTH || !isValidEmail(email)) {
+      return res.status(400).json({
+        error: "Ingresá un correo electrónico válido.",
       });
     }
 
@@ -264,6 +343,7 @@ router.post("/forgot-password", async (req, res) => {
         TRIM(email) AS email
       FROM users
       WHERE LOWER(TRIM(email)) = LOWER($1)
+      LIMIT 1
       `,
       [email],
     );
@@ -348,14 +428,11 @@ router.post("/forgot-password", async (req, res) => {
       `,
     });
 
-    console.log(
-      "MAIL DE RECUPERACIÓN ENVIADO:",
-      {
-        messageId: info.messageId,
-        destinatario: user.email,
-        respuesta: info.response,
-      },
-    );
+    console.log("MAIL DE RECUPERACIÓN ENVIADO:", {
+      messageId: info.messageId,
+      destinatario: user.email,
+      respuesta: info.response,
+    });
 
     return res.json({
       message: genericMessage,
@@ -408,10 +485,9 @@ router.post("/reset-password", async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({
-        error: "La contraseña debe tener al menos 6 caracteres.",
-      });
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ error: passwordError });
     }
 
     const tokenHash = crypto
@@ -425,6 +501,7 @@ router.post("/reset-password", async (req, res) => {
       FROM users
       WHERE reset_password_token = $1
         AND reset_password_expires > NOW()
+      LIMIT 1
       `,
       [tokenHash],
     );
@@ -437,7 +514,7 @@ router.post("/reset-password", async (req, res) => {
       });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     await query(
       `
@@ -464,3 +541,4 @@ router.post("/reset-password", async (req, res) => {
 });
 
 export default router;
+
