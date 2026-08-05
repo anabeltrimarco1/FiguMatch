@@ -37,33 +37,42 @@ const allowedOrigins = [
  */
 const corsOptions = {
   origin(origin, callback) {
-    /*
-     * Permite solicitudes sin Origin, como Postman,
-     * Railway y algunas llamadas internas.
-     */
     if (!origin) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
+    const isLocal =
+      origin === "http://localhost:5173";
+
+    const isVercel =
+      /^https:\/\/.*\.vercel\.app$/.test(origin);
+
+    if (isLocal || isVercel) {
       return callback(null, true);
     }
 
-    console.error("Origen rechazado por CORS:", origin);
+    console.error("CORS rechazó:", origin);
 
     return callback(
-      new Error(`Origen no permitido por CORS: ${origin}`),
+      new Error(`Origen no permitido por CORS: ${origin}`)
     );
   },
   credentials: true,
 };
 
-/*
- * Configuración de Socket.IO.
- */
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      if (
+        !origin ||
+        origin === "http://localhost:5173" ||
+        /^https:\/\/.*\.vercel\.app$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origen no permitido"));
+    },
     credentials: true,
     methods: ["GET", "POST"],
   },
@@ -71,9 +80,6 @@ const io = new Server(server, {
 
 app.set("io", io);
 
-/*
- * Middlewares generales.
- */
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
