@@ -21,80 +21,64 @@ import tradeRequestsRoutes from "./routes/tradeRequests.js";
 dotenv.config();
 
 const app = express();
+
+/* Railway/Vercel usan proxies. Esto permite identificar correctamente la IP real. */
+app.set("trust proxy", 1);
+
 const server = http.createServer(app);
 
-function isAllowedOrigin(origin) {
-  if (!origin) {
-    return true;
-  }
+/*
+ * Frontends autorizados para conectarse al backend.
+ */
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://figu-match-fcju.vercel.app",
+  "https://figu-match-fcju-ja259aifa-coreia.vercel.app",
+];
 
-  const isLocal =
-    origin === "http://localhost:5173";
-
-  const isVercel =
-    /^https:\/\/.*\.vercel\.app$/.test(origin);
-
-  return isLocal || isVercel;
-}
-
+/*
+ * Configuración CORS para Express.
+ */
 const corsOptions = {
   origin(origin, callback) {
-    if (isAllowedOrigin(origin)) {
+    if (!origin) {
       return callback(null, true);
     }
 
-    console.error(
-      "CORS rechazó el origen:",
-      origin,
-    );
+    const isLocal =
+      origin === "http://localhost:5173";
+
+    const isVercel =
+      /^https:\/\/.*\.vercel\.app$/.test(origin);
+
+    if (isLocal || isVercel) {
+      return callback(null, true);
+    }
+
+    console.error("CORS rechazó:", origin);
 
     return callback(
-      new Error(
-        `Origen no permitido por CORS: ${origin}`,
-      ),
+      new Error(`Origen no permitido por CORS: ${origin}`)
     );
   },
-
   credentials: true,
-
-  methods: [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "OPTIONS",
-  ],
-
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-  ],
 };
 
 const io = new Server(server, {
   cors: {
     origin(origin, callback) {
-      if (isAllowedOrigin(origin)) {
+      if (
+        !origin ||
+        origin === "http://localhost:5173" ||
+        /^https:\/\/.*\.vercel\.app$/.test(origin)
+      ) {
         return callback(null, true);
       }
 
-      console.error(
-        "Socket.IO rechazó el origen:",
-        origin,
-      );
-
-      return callback(
-        new Error("Origen no permitido"),
-      );
+      return callback(new Error("Origen no permitido"));
     },
-
     credentials: true,
-
-    methods: [
-      "GET",
-      "POST",
-    ],
+    methods: ["GET", "POST"],
   },
 });
 
@@ -104,30 +88,32 @@ app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
 
-const __filename =
-  fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const __dirname =
-  path.dirname(__filename);
-
+/*
+ * Archivos estáticos.
+ */
 app.use(
   "/stickers-images",
   express.static(
-    path.join(
-      __dirname,
-      "../public/stickers",
-    ),
+    path.join(__dirname, "../public/stickers"),
   ),
 );
 
+/*
+ * Ruta para comprobar que Railway está funcionando.
+ */
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
-    message:
-      "Backend de FiguMatch funcionando",
+    message: "Backend FiguMatch funcionando",
   });
 });
 
+/*
+ * Rutas de la API.
+ */
 app.use("/api/groups", groupRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stickers", stickerRoutes);
@@ -136,20 +122,19 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/import", importExcelRoutes);
 app.use("/api/teams", teamsRoutes);
-
 app.use(
   "/api/trade-requests",
   tradeRequestsRoutes,
 );
 
+/*
+ * Autenticación de Socket.IO mediante JWT.
+ */
 io.use((socket, next) => {
-  const token =
-    socket.handshake.auth?.token;
+  const token = socket.handshake.auth?.token;
 
   if (!token) {
-    return next(
-      new Error("No autenticado"),
-    );
+    return next(new Error("No autenticado"));
   }
 
   try {
@@ -163,32 +148,27 @@ io.use((socket, next) => {
     return next();
   } catch (error) {
     console.error(
-      "Error verificando JWT del socket:",
+      "Error verificando token del socket:",
       error,
     );
 
-    return next(
-      new Error("Token inválido"),
-    );
+    return next(new Error("Token inválido"));
   }
 });
 
 const onlineUsers = new Map();
 
 function getOnlineUserIds() {
-  return Array.from(
-    onlineUsers.keys(),
-  );
+  return Array.from(onlineUsers.keys());
 }
 
+/*
+ * Eventos de Socket.IO.
+ */
 io.on("connection", (socket) => {
-  const userId =
-    Number(socket.userId);
+  const userId = Number(socket.userId);
 
-  if (
-    !Number.isInteger(userId) ||
-    userId <= 0
-  ) {
+  if (!Number.isInteger(userId) || userId <= 0) {
     socket.disconnect(true);
     return;
   }
@@ -270,54 +250,40 @@ io.on("connection", (socket) => {
         "presence:offline",
         userId,
       );
-
-      return;
+    } else {
+      onlineUsers.set(
+        userId,
+        remainingConnections,
+      );
     }
-
-    onlineUsers.set(
-      userId,
-      remainingConnections,
-    );
   });
 });
 
-app.use(
-  (error, _req, res, _next) => {
-    console.error(
-      "Error del servidor:",
-      error,
-    );
+/*
+ * Manejador básico de errores.
+ */
+app.use((error, _req, res, _next) => {
+  console.error("Error del servidor:", error);
 
-    if (
-      error?.message?.includes(
-        "Origen no permitido",
-      )
-    ) {
-      return res.status(403).json({
-        error:
-          "Origen no autorizado",
-      });
-    }
-
-    return res.status(500).json({
-      error:
-        "Error interno del servidor",
+  if (
+    error?.message?.includes(
+      "Origen no permitido por CORS",
+    )
+  ) {
+    return res.status(403).json({
+      error: "Origen no autorizado",
     });
-  },
-);
+  }
 
-const port =
-  process.env.PORT || 4000;
+  return res.status(500).json({
+    error: "Error interno del servidor",
+  });
+});
+
+const port = process.env.PORT || 4000;
 
 server.listen(port, () => {
   console.log(
-    `
-🚀 FiguMatch API iniciada
-📡 Puerto: ${port}
-🌍 Entorno: ${
-      process.env.NODE_ENV ||
-      "development"
-    }
-`,
+    `API de FiguMatch escuchando en el puerto ${port}`,
   );
 });

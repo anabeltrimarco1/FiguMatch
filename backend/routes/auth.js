@@ -4,6 +4,10 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { query } from "../config/db.js";
+import {
+  loginRateLimiter,
+  passwordRecoveryRateLimiter,
+} from "../middleware/rateLimit.js";
 
 const router = Router();
 
@@ -246,7 +250,7 @@ router.post("/register", async (req, res) => {
 });
 
 // LOGIN
-router.post("/login", async (req, res) => {
+router.post("/login", loginRateLimiter, async (req, res) => {
   try {
     const usernameOrEmail = normalizeUsername(req.body.username);
     const password = String(req.body.password || "");
@@ -314,7 +318,10 @@ router.post("/login", async (req, res) => {
 });
 
 // RECUPERACIÓN DE CONTRASEÑA
-router.post("/forgot-password", async (req, res) => {
+router.post(
+  "/forgot-password",
+  passwordRecoveryRateLimiter,
+  async (req, res) => {
   const genericMessage =
     "Si existe una cuenta asociada a ese correo, recibirás un enlace para recuperar tu contraseña.";
 
@@ -471,7 +478,8 @@ router.post("/forgot-password", async (req, res) => {
         "No se pudo enviar el correo. Revisá la configuración SMTP del backend.",
     });
   }
-});
+  },
+);
 
 // RESTABLECER CONTRASEÑA
 router.post("/reset-password", async (req, res) => {
@@ -541,4 +549,3 @@ router.post("/reset-password", async (req, res) => {
 });
 
 export default router;
-
