@@ -1,4 +1,3 @@
-import groupRoutes from "./routes/groups.js";
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -8,6 +7,8 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import groupRoutes from "./routes/groups.js";
 import importExcelRoutes from "./routes/importExcel.js";
 import authRoutes from "./routes/auth.js";
 import stickerRoutes from "./routes/stickers.js";
@@ -21,31 +22,88 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
 
+/*
+ * Frontends autorizados para conectarse al backend.
+ */
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://figu-match-fcju.vercel.app",
+];
+
+/*
+ * Configuración CORS para Express.
+ */
+const corsOptions = {
+  origin(origin, callback) {
+    /*
+     * Permite solicitudes sin Origin, como Postman,
+     * Railway y algunas llamadas internas.
+     */
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.error("Origen rechazado por CORS:", origin);
+
+    return callback(
+      new Error(`Origen no permitido por CORS: ${origin}`),
+    );
+  },
+  credentials: true,
+};
+
+/*
+ * Configuración de Socket.IO.
+ */
 const io = new Server(server, {
-  cors: { origin: corsOrigin },
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST"],
+  },
 });
+
 app.set("io", io);
 
-app.use("/api/groups", groupRoutes);
-
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  }),
-);
+/*
+ * Middlewares generales.
+ */
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/*
+ * Archivos estáticos.
+ */
 app.use(
   "/stickers-images",
-  express.static(path.join(__dirname, "../public/stickers")),
+  express.static(
+    path.join(__dirname, "../public/stickers"),
+  ),
 );
-app.get("/api/health", (req, res) => res.json({ ok: true }));
+
+/*
+ * Ruta para comprobar que Railway está funcionando.
+ */
+app.get("/api/health", (_req, res) => {
+  res.json({
+    ok: true,
+    message: "Backend FiguMatch funcionando",
+  });
+});
+
+/*
+ * Rutas de la API.
+ */
+app.use("/api/groups", groupRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stickers", stickerRoutes);
 app.use("/api/album", albumRoutes);
@@ -53,17 +111,37 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/import", importExcelRoutes);
 app.use("/api/teams", teamsRoutes);
-app.use("/api/trade-requests", tradeRequestsRoutes);
-// Autenticación de sockets con el mismo JWT del login
+app.use(
+  "/api/trade-requests",
+  tradeRequestsRoutes,
+);
+
+/*
+ * Autenticación de Socket.IO mediante JWT.
+ */
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
-  if (!token) return next(new Error("No autenticado"));
+
+  if (!token) {
+    return next(new Error("No autenticado"));
+  }
+
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET,
+    );
+
     socket.userId = payload.userId;
-    next();
-  } catch (_err) {
-    next(new Error("Token inválido"));
+
+    return next();
+  } catch (error) {
+    console.error(
+      "Error verificando token del socket:",
+      error,
+    );
+
+    return next(new Error("Token inválido"));
   }
 });
 
@@ -73,45 +151,82 @@ function getOnlineUserIds() {
   return Array.from(onlineUsers.keys());
 }
 
+/*
+ * Eventos de Socket.IO.
+ */
 io.on("connection", (socket) => {
   const userId = Number(socket.userId);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    socket.disconnect(true);
+    return;
+  }
 
   socket.join(`user:${userId}`);
 
   const currentConnections =
     onlineUsers.get(userId) || 0;
 
-  onlineUsers.set(userId, currentConnections + 1);
+  onlineUsers.set(
+    userId,
+    currentConnections + 1,
+  );
 
-  socket.emit("presence:list", getOnlineUserIds());
+  socket.emit(
+    "presence:list",
+    getOnlineUserIds(),
+  );
 
   if (currentConnections === 0) {
-    socket.broadcast.emit("presence:online", userId);
+    socket.broadcast.emit(
+      "presence:online",
+      userId,
+    );
   }
 
-  socket.on("typing:start", ({ receiverUserId }) => {
-    const receiverId = Number(receiverUserId);
+  socket.on(
+    "typing:start",
+    ({ receiverUserId }) => {
+      const receiverId =
+        Number(receiverUserId);
 
-    if (!Number.isInteger(receiverId)) {
-      return;
-    }
+      if (
+        !Number.isInteger(receiverId) ||
+        receiverId <= 0
+      ) {
+        return;
+      }
 
-    io.to(`user:${receiverId}`).emit("typing:start", {
-      userId,
-    });
-  });
+      io.to(`user:${receiverId}`).emit(
+        "typing:start",
+        {
+          userId,
+        },
+      );
+    },
+  );
 
-  socket.on("typing:stop", ({ receiverUserId }) => {
-    const receiverId = Number(receiverUserId);
+  socket.on(
+    "typing:stop",
+    ({ receiverUserId }) => {
+      const receiverId =
+        Number(receiverUserId);
 
-    if (!Number.isInteger(receiverId)) {
-      return;
-    }
+      if (
+        !Number.isInteger(receiverId) ||
+        receiverId <= 0
+      ) {
+        return;
+      }
 
-    io.to(`user:${receiverId}`).emit("typing:stop", {
-      userId,
-    });
-  });
+      io.to(`user:${receiverId}`).emit(
+        "typing:stop",
+        {
+          userId,
+        },
+      );
+    },
+  );
 
   socket.on("disconnect", () => {
     const remainingConnections =
@@ -119,16 +234,45 @@ io.on("connection", (socket) => {
 
     if (remainingConnections <= 0) {
       onlineUsers.delete(userId);
-      socket.broadcast.emit("presence:offline", userId);
+
+      socket.broadcast.emit(
+        "presence:offline",
+        userId,
+      );
     } else {
-      onlineUsers.set(userId, remainingConnections);
+      onlineUsers.set(
+        userId,
+        remainingConnections,
+      );
     }
   });
 });
 
+/*
+ * Manejador básico de errores.
+ */
+app.use((error, _req, res, _next) => {
+  console.error("Error del servidor:", error);
+
+  if (
+    error?.message?.includes(
+      "Origen no permitido por CORS",
+    )
+  ) {
+    return res.status(403).json({
+      error: "Origen no autorizado",
+    });
+  }
+
+  return res.status(500).json({
+    error: "Error interno del servidor",
+  });
+});
+
 const port = process.env.PORT || 4000;
+
 server.listen(port, () => {
   console.log(
-    `API de Figuritas del Mundial escuchando en http://localhost:${port}`,
+    `API de FiguMatch escuchando en el puerto ${port}`,
   );
 });
