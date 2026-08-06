@@ -50,6 +50,11 @@ const menuGroups = [
         icon: "💬",
         label: "Chat",
       },
+      {
+        to: "/actividad",
+        icon: "🔔",
+        label: "Actividad",
+      },
     ],
   },
 ];

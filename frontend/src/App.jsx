@@ -45,6 +45,10 @@ const TradeCenter = lazy(() =>
   import("./pages/TradeCenter.jsx")
 );
 
+const Activity = lazy(() =>
+  import("./pages/Activity.jsx")
+);
+
 function ProtectedRoute() {
   const {
     isAuthenticated,
@@ -152,6 +156,11 @@ export default function App() {
           <Route
             path="/intercambios"
             element={<TradeCenter />}
+          />
+
+          <Route
+            path="/actividad"
+            element={<Activity />}
           />
         </Route>
 
