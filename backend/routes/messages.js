@@ -1,6 +1,10 @@
 import express from "express";
 import { pool } from "../config/db.js";
 import { requireAuth } from "../middleware/auth.js";
+import {
+  createNotificationSafely,
+  NOTIFICATION_TYPES,
+} from "../services/notificationService.js";
 
 const router = express.Router();
 
@@ -260,7 +264,9 @@ router.post("/", requireAuth, async (req, res) => {
 
     const receiverResult = await pool.query(
       `
-      SELECT id
+      SELECT
+        id,
+        TRIM(username) AS username
       FROM users
       WHERE id = $1
       `,
@@ -325,6 +331,9 @@ router.post("/", requireAuth, async (req, res) => {
 
     const createdMessage = result.rows[0];
 
+    const senderUsername =
+      String(req.username || "").trim() || "Un coleccionista";
+
     const io = req.app.get("io");
 
     if (io) {
@@ -338,6 +347,15 @@ router.post("/", requireAuth, async (req, res) => {
         createdMessage
       );
     }
+
+    await createNotificationSafely({
+      io,
+      userId: receiverUserId,
+      type: NOTIFICATION_TYPES.NEW_MESSAGE,
+      title: "Nuevo mensaje",
+      message: `${senderUsername} te envió un mensaje.`,
+      link: "/chat",
+    });
 
     return res.status(201).json({
       ok: true,
