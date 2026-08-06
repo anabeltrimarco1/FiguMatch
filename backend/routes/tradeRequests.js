@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { query } from "../config/db.js";
 import { requireAuth } from "../middleware/auth.js";
+import {
+  createNotificationSafely,
+  NOTIFICATION_TYPES,
+} from "../services/notificationService.js";
 
 const router = Router();
 
@@ -113,6 +117,7 @@ router.get("/sent", requireAuth, async (req, res) => {
   }
 
 });
+
 /* =====================================================
    CREAR SOLICITUD DE INTERCAMBIO
 ===================================================== */
@@ -133,9 +138,7 @@ router.post("/", requireAuth, async (req, res) => {
       !receiverUserId ||
       !offeredStickerId ||
       !requestedStickerId
-    ) {
-
-      return res.status(400).json({
+    ) {      return res.status(400).json({
         error:
           "Faltan receiverUserId, offeredStickerId o requestedStickerId",
       });
@@ -284,6 +287,22 @@ router.post("/", requireAuth, async (req, res) => {
 
     );
 
+    const io = req.app.get("io");
+
+    const requesterUsername =
+      String(req.username || "").trim() ||
+      "Un coleccionista";
+
+    await createNotificationSafely({
+      io,
+      userId: receiverId,
+      type: NOTIFICATION_TYPES.TRADE_REQUEST,
+      title: "Nueva propuesta de intercambio",
+      message:
+        `${requesterUsername} quiere intercambiar figuritas con vos.`,
+      link: "/intercambios",
+    });
+
     return res.status(201).json({
 
       message:
@@ -348,6 +367,22 @@ router.put("/:id/accept", requireAuth, async (req, res) => {
       });
     }
 
+    const io = req.app.get("io");
+
+    const receiverUsername =
+      String(req.username || "").trim() ||
+      "El otro coleccionista";
+
+    await createNotificationSafely({
+      io,
+      userId: result.rows[0].requester_id,
+      type: NOTIFICATION_TYPES.TRADE_ACCEPTED,
+      title: "Intercambio aceptado",
+      message:
+        `${receiverUsername} aceptó tu propuesta de intercambio.`,
+      link: "/intercambios",
+    });
+
     return res.json({
       message: "Intercambio aceptado correctamente",
       tradeRequest: result.rows[0],
@@ -401,6 +436,22 @@ router.put("/:id/reject", requireAuth, async (req, res) => {
       });
     }
 
+    const io = req.app.get("io");
+
+    const receiverUsername =
+      String(req.username || "").trim() ||
+      "El otro coleccionista";
+
+    await createNotificationSafely({
+      io,
+      userId: result.rows[0].requester_id,
+      type: NOTIFICATION_TYPES.TRADE_REJECTED,
+      title: "Intercambio rechazado",
+      message:
+        `${receiverUsername} rechazó tu propuesta de intercambio.`,
+      link: "/intercambios",
+    });
+
     return res.json({
       message: "Solicitud rechazada",
       tradeRequest: result.rows[0],
@@ -452,6 +503,22 @@ router.put("/:id/cancel", requireAuth, async (req, res) => {
           "La solicitud no existe, no te pertenece o ya fue respondida",
       });
     }
+
+    const io = req.app.get("io");
+
+    const requesterUsername =
+      String(req.username || "").trim() ||
+      "El otro coleccionista";
+
+    await createNotificationSafely({
+      io,
+      userId: result.rows[0].receiver_id,
+      type: NOTIFICATION_TYPES.TRADE_CANCELLED,
+      title: "Propuesta cancelada",
+      message:
+        `${requesterUsername} canceló la propuesta de intercambio.`,
+      link: "/intercambios",
+    });
 
     return res.json({
       message: "Solicitud cancelada",
