@@ -10,6 +10,7 @@ import {
 import api from "../api";
 import { useAuth } from "./AuthContext";
 import { useSocket } from "./SocketContext";
+import NotificationToast from "../components/toasts/NotificationToast.jsx";
 
 const NotificationContext = createContext(null);
 
@@ -21,13 +22,16 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [toastNotification, setToastNotification] = useState(null);
 
   const prependNotification = useCallback((notification) => {
-    if (!notification) return;
+    if (!notification) {
+      return;
+    }
 
     setNotifications((current) => {
       const exists = current.some(
-        (item) => Number(item.id) === Number(notification.id)
+        (item) => Number(item.id) === Number(notification.id),
       );
 
       if (exists) {
@@ -42,7 +46,7 @@ export function NotificationProvider({ children }) {
     }
   }, []);
 
-    const loadNotifications = useCallback(async () => {
+  const loadNotifications = useCallback(async () => {
     if (!isAuthenticated) {
       setNotifications([]);
       setUnreadCount(0);
@@ -56,26 +60,24 @@ export function NotificationProvider({ children }) {
     try {
       const response = await api.get("/notifications");
 
-      const receivedNotifications = Array.isArray(
-        response.data?.notifications
-      )
-        ? response.data.notifications
-        : [];
-
-      setNotifications(receivedNotifications);
+      setNotifications(
+        Array.isArray(response.data?.notifications)
+          ? response.data.notifications
+          : [],
+      );
 
       setUnreadCount(
-        Number(response.data?.unreadCount) || 0
+        Number(response.data?.unreadCount) || 0,
       );
     } catch (requestError) {
       console.error(
         "ERROR AL CARGAR NOTIFICACIONES:",
-        requestError
+        requestError,
       );
 
       setError(
         requestError.response?.data?.error ||
-          "No se pudieron cargar las notificaciones."
+          "No se pudieron cargar las notificaciones.",
       );
     } finally {
       setLoading(false);
@@ -88,30 +90,45 @@ export function NotificationProvider({ children }) {
 
   useEffect(() => {
     if (!socket) {
-      return;
+      return undefined;
     }
 
     function handleNewNotification(notification) {
       prependNotification(notification);
+      setToastNotification(notification);
     }
 
     socket.on(
       "notification:new",
-      handleNewNotification
+      handleNewNotification,
     );
 
     return () => {
       socket.off(
         "notification:new",
-        handleNewNotification
+        handleNewNotification,
       );
     };
   }, [socket, prependNotification]);
 
-    async function markAsRead(notificationId) {
+  useEffect(() => {
+    if (!toastNotification) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToastNotification(null);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toastNotification]);
+
+  async function markAsRead(notificationId) {
     const notification = notifications.find(
       (item) =>
-        Number(item.id) === Number(notificationId)
+        Number(item.id) === Number(notificationId),
     );
 
     if (!notification || notification.is_read) {
@@ -120,7 +137,7 @@ export function NotificationProvider({ children }) {
 
     try {
       await api.put(
-        `/notifications/${notificationId}/read`
+        `/notifications/${notificationId}/read`,
       );
 
       setNotifications((current) =>
@@ -131,17 +148,17 @@ export function NotificationProvider({ children }) {
                 is_read: true,
                 read_at: new Date().toISOString(),
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       setUnreadCount((current) =>
-        Math.max(0, current - 1)
+        Math.max(0, current - 1),
       );
     } catch (requestError) {
       console.error(
         "ERROR AL MARCAR NOTIFICACIÓN:",
-        requestError
+        requestError,
       );
     }
   }
@@ -159,41 +176,35 @@ export function NotificationProvider({ children }) {
           ...item,
           is_read: true,
           read_at:
-            item.read_at ||
-            new Date().toISOString(),
-        }))
+            item.read_at || new Date().toISOString(),
+        })),
       );
 
       setUnreadCount(0);
     } catch (requestError) {
       console.error(
         "ERROR AL MARCAR TODAS COMO LEÍDAS:",
-        requestError
+        requestError,
       );
     }
   }
 
-  async function removeNotification(
-    notificationId
-  ) {
-    try {
-      const removedNotification =
-        notifications.find(
-          (item) =>
-            Number(item.id) ===
-            Number(notificationId)
-        );
+  async function removeNotification(notificationId) {
+    const removedNotification = notifications.find(
+      (item) =>
+        Number(item.id) === Number(notificationId),
+    );
 
+    try {
       await api.delete(
-        `/notifications/${notificationId}`
+        `/notifications/${notificationId}`,
       );
 
       setNotifications((current) =>
         current.filter(
           (item) =>
-            Number(item.id) !==
-            Number(notificationId)
-        )
+            Number(item.id) !== Number(notificationId),
+        ),
       );
 
       if (
@@ -201,17 +212,18 @@ export function NotificationProvider({ children }) {
         !removedNotification.is_read
       ) {
         setUnreadCount((current) =>
-          Math.max(0, current - 1)
+          Math.max(0, current - 1),
         );
       }
     } catch (requestError) {
       console.error(
         "ERROR AL ELIMINAR NOTIFICACIÓN:",
-        requestError
+        requestError,
       );
     }
   }
-    const value = useMemo(
+
+  const value = useMemo(
     () => ({
       notifications,
       unreadCount,
@@ -225,18 +237,22 @@ export function NotificationProvider({ children }) {
     [
       notifications,
       unreadCount,
-     loading,
-     error,
-     loadNotifications,
-     markAsRead,
-     markAllAsRead,
-     removeNotification,
-    ]
+      loading,
+      error,
+      loadNotifications,
+    ],
   );
 
   return (
     <NotificationContext.Provider value={value}>
       {children}
+
+      {toastNotification && (
+        <NotificationToast
+          notification={toastNotification}
+          onClose={() => setToastNotification(null)}
+        />
+      )}
     </NotificationContext.Provider>
   );
 }
@@ -246,7 +262,7 @@ export function useNotifications() {
 
   if (!context) {
     throw new Error(
-      "useNotifications debe utilizarse dentro de NotificationProvider"
+      "useNotifications debe utilizarse dentro de NotificationProvider",
     );
   }
 
