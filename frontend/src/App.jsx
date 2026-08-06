@@ -1,4 +1,8 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
 
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -17,14 +21,22 @@ import { useAuth } from "./context/AuthContext.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
 
 function ProtectedRoute() {
-  const { isAuthenticated, loading } = useAuth();
+  const {
+    isAuthenticated,
+    loading,
+  } = useAuth();
 
   if (loading) {
     return <p>Cargando...</p>;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
   return <AppLayout />;
@@ -35,27 +47,65 @@ export default function App() {
     <Routes>
       <Route
         path="/"
-        element={<Navigate to="/dashboard" replace />}
+        element={
+          <Navigate
+            to="/dashboard"
+            replace
+          />
+        }
       />
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      <Route
+        path="/register"
+        element={<Register />}
+      />
+
       <Route
         path="/forgot-password"
         element={<ForgotPassword />}
       />
+
       <Route
         path="/reset-password/:token"
         element={<ResetPassword />}
       />
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/album" element={<Album />} />
-        <Route path="/matches" element={<Matches />} />
-        <Route path="/faltantes" element={<Faltantes />} />
-        <Route path="/repetidas" element={<Repetidas />} />
-        <Route path="/chat" element={<Chat />} />
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+        <Route
+          path="/album"
+          element={<Album />}
+        />
+
+        <Route
+          path="/matches"
+          element={<Matches />}
+        />
+
+        <Route
+          path="/faltantes"
+          element={<Faltantes />}
+        />
+
+        <Route
+          path="/repetidas"
+          element={<Repetidas />}
+        />
+
+        <Route
+          path="/chat"
+          element={<Chat />}
+        />
+
         <Route
           path="/intercambios"
           element={<TradeCenter />}
@@ -64,10 +114,13 @@ export default function App() {
 
       <Route
         path="*"
-        element={<Navigate to="/dashboard" replace />}
+        element={
+          <Navigate
+            to="/dashboard"
+            replace
+          />
+        }
       />
     </Routes>
   );
 }
-
-

@@ -8,17 +8,20 @@ import "../../styles/layout.css";
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const openSidebar = () => {
+  function openSidebar() {
     setSidebarOpen(true);
-  };
+  }
 
-  const closeSidebar = () => {
+  function closeSidebar() {
     setSidebarOpen(false);
-  };
+  }
 
   return (
     <div className="app-shell">
-      <Sidebar open={sidebarOpen} onClose={closeSidebar} />
+      <Sidebar
+        open={sidebarOpen}
+        onClose={closeSidebar}
+      />
 
       <div className="app-main">
         <Header onMenuClick={openSidebar} />

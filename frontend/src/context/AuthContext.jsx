@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import api, {
+import {
   API_URL,
   clearStoredSession,
   getAccessToken,
@@ -14,6 +14,11 @@ import api, {
   saveRefreshToken,
   setAuthToken,
 } from "../api";
+import {
+  connectSocket,
+  disconnectSocket,
+  reconnectSocket,
+} from "../socket";
 
 const AuthContext = createContext(null);
 
@@ -70,12 +75,18 @@ export function AuthProvider({ children }) {
     );
 
     setUser(sessionUser);
+    connectSocket(accessToken);
   }
 
   function clearSession() {
+    disconnectSocket();
     clearStoredSession();
     setToken(null);
     setUser(null);
+
+    window.dispatchEvent(
+      new CustomEvent("figuritas:logout-complete"),
+    );
   }
 
   useEffect(() => {
@@ -96,19 +107,18 @@ export function AuthProvider({ children }) {
 
       if (savedAccessToken) {
         setAuthToken(savedAccessToken);
+        connectSocket(savedAccessToken);
 
         if (isMounted) {
           setToken(savedAccessToken);
         }
       }
 
-      /*
-       * Si existe refresh token, renovamos la sesión al iniciar.
-       * Así evitamos depender de que el access token guardado siga vigente.
-       */
       if (savedRefreshToken) {
         try {
           const newAccessToken = await refreshAccessToken();
+
+          reconnectSocket(newAccessToken);
 
           if (isMounted) {
             setToken(newAccessToken);
@@ -142,6 +152,7 @@ export function AuthProvider({ children }) {
 
       if (refreshedAccessToken) {
         setToken(refreshedAccessToken);
+        reconnectSocket(refreshedAccessToken);
       }
 
       if (refreshedUser) {
@@ -252,10 +263,6 @@ export function AuthProvider({ children }) {
   async function logout() {
     const refreshToken = getRefreshToken();
 
-    /*
-     * Limpiamos primero la sesión local para que el usuario salga
-     * inmediatamente, aunque Railway esté temporalmente caído.
-     */
     clearSession();
 
     if (!refreshToken) {
@@ -273,6 +280,7 @@ export function AuthProvider({ children }) {
           body: JSON.stringify({
             refreshToken,
           }),
+          keepalive: true,
         },
       );
     } catch (error) {
@@ -314,3 +322,4 @@ export function useAuth() {
 
   return context;
 }
+

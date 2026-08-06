@@ -47,6 +47,9 @@ export function clearStoredSession() {
   setAuthToken(null);
   saveRefreshToken(null);
   localStorage.removeItem(USER_KEY);
+
+  sessionStorage.removeItem("figuritas_chat_user");
+  sessionStorage.removeItem("figuritas_trade_draft");
 }
 
 export async function refreshAccessToken() {
@@ -184,3 +187,4 @@ if (savedToken) {
 
 export { API_URL };
 export default api;
+

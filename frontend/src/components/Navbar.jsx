@@ -16,9 +16,12 @@ export default function Navbar() {
   const username = user?.username || "Coleccionista";
   const avatarLetter = username.charAt(0).toUpperCase();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+  const handleLogout = async () => {
+    await logout();
+
+    navigate("/login", {
+      replace: true,
+    });
   };
 
   return (
