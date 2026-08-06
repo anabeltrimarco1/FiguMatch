@@ -1,55 +1,182 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { setAuthToken } from "../api";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import api, {
+  API_URL,
+  clearStoredSession,
+  getAccessToken,
+  getRefreshToken,
+  refreshAccessToken,
+  saveRefreshToken,
+  setAuthToken,
+} from "../api";
 
 const AuthContext = createContext(null);
 
-const API_URL = import.meta.env.DEV
-  ? "http://localhost:4000"
-  : "https://figumatch-production.up.railway.app";
+const ACCESS_TOKEN_KEY = "figuritas_token";
+const REFRESH_TOKEN_KEY = "figuritas_refresh_token";
+const USER_KEY = "figuritas_user";
+
+function parseStoredUser() {
+  const savedUser = localStorage.getItem(USER_KEY);
+
+  if (!savedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(savedUser);
+  } catch (error) {
+    console.error("Usuario guardado inválido:", error);
+    localStorage.removeItem(USER_KEY);
+    return null;
+  }
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("figuritas_token"));
+  const [user, setUser] = useState(parseStoredUser);
+  const [token, setToken] = useState(getAccessToken);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem("figuritas_token");
-    const savedUser = localStorage.getItem("figuritas_user");
+  function saveSession(sessionData) {
+    const accessToken =
+      sessionData.accessToken || sessionData.token;
 
-    if (savedToken) {
-      setAuthToken(savedToken);
-      setToken(savedToken);
+    const refreshToken =
+      sessionData.refreshToken || getRefreshToken();
+
+    const sessionUser = sessionData.user || user;
+
+    if (!accessToken || !sessionUser) {
+      throw new Error(
+        "La respuesta del servidor no contiene una sesión válida.",
+      );
     }
 
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error(error);
+    setAuthToken(accessToken);
+    setToken(accessToken);
 
-        localStorage.removeItem("figuritas_token");
-        localStorage.removeItem("figuritas_user");
+    if (refreshToken) {
+      saveRefreshToken(refreshToken);
+    }
 
-        setAuthToken(null);
-        setToken(null);
-        setUser(null);
+    localStorage.setItem(
+      USER_KEY,
+      JSON.stringify(sessionUser),
+    );
+
+    setUser(sessionUser);
+  }
+
+  function clearSession() {
+    clearStoredSession();
+    setToken(null);
+    setUser(null);
+  }
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function restoreSession() {
+      const savedAccessToken =
+        localStorage.getItem(ACCESS_TOKEN_KEY);
+
+      const savedRefreshToken =
+        localStorage.getItem(REFRESH_TOKEN_KEY);
+
+      const savedUser = parseStoredUser();
+
+      if (savedUser && isMounted) {
+        setUser(savedUser);
+      }
+
+      if (savedAccessToken) {
+        setAuthToken(savedAccessToken);
+
+        if (isMounted) {
+          setToken(savedAccessToken);
+        }
+      }
+
+      /*
+       * Si existe refresh token, renovamos la sesión al iniciar.
+       * Así evitamos depender de que el access token guardado siga vigente.
+       */
+      if (savedRefreshToken) {
+        try {
+          const newAccessToken = await refreshAccessToken();
+
+          if (isMounted) {
+            setToken(newAccessToken);
+            setUser(parseStoredUser());
+          }
+        } catch (error) {
+          console.error(
+            "No se pudo restaurar la sesión:",
+            error,
+          );
+
+          if (isMounted) {
+            clearSession();
+          }
+        }
+      }
+
+      if (isMounted) {
+        setLoading(false);
       }
     }
 
-    setLoading(false);
-  }, []);
+    restoreSession();
 
-  function saveSession(newToken, newUser) {
-    localStorage.setItem("figuritas_token", newToken);
-    localStorage.setItem(
-      "figuritas_user",
-      JSON.stringify(newUser)
+    function handleSessionRefreshed(event) {
+      const refreshedAccessToken =
+        event.detail?.accessToken;
+
+      const refreshedUser =
+        event.detail?.user || parseStoredUser();
+
+      if (refreshedAccessToken) {
+        setToken(refreshedAccessToken);
+      }
+
+      if (refreshedUser) {
+        setUser(refreshedUser);
+      }
+    }
+
+    function handleSessionExpired() {
+      clearSession();
+    }
+
+    window.addEventListener(
+      "figuritas:session-refreshed",
+      handleSessionRefreshed,
     );
 
-    setAuthToken(newToken);
-    setToken(newToken);
-    setUser(newUser);
-  }
+    window.addEventListener(
+      "figuritas:session-expired",
+      handleSessionExpired,
+    );
+
+    return () => {
+      isMounted = false;
+
+      window.removeEventListener(
+        "figuritas:session-refreshed",
+        handleSessionRefreshed,
+      );
+
+      window.removeEventListener(
+        "figuritas:session-expired",
+        handleSessionExpired,
+      );
+    };
+  }, []);
 
   async function login(username, password) {
     try {
@@ -61,25 +188,23 @@ export function AuthProvider({ children }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            username: username.trim(),
+            username: String(username || "").trim(),
             password,
           }),
-        }
+        },
       );
 
       const data = await response.json();
-
-      console.log("LOGIN:", data);
 
       if (!response.ok) {
         throw new Error(
           data.error ||
           data.message ||
-          "No se pudo iniciar sesión"
+          "No se pudo iniciar sesión.",
         );
       }
 
-      saveSession(data.token, data.user);
+      saveSession(data);
 
       return data;
     } catch (error) {
@@ -89,57 +214,90 @@ export function AuthProvider({ children }) {
   }
 
   async function register(username, email, password) {
-    const response = await fetch(
-      `${API_URL}/api/auth/register`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const response = await fetch(
+        `${API_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: String(username || "").trim(),
+            email: String(email || "").trim(),
+            password,
+          }),
         },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error ||
-        data.message ||
-        "No se pudo registrar"
       );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          data.message ||
+          "No se pudo registrar.",
+        );
+      }
+
+      saveSession(data);
+
+      return data;
+    } catch (error) {
+      console.error("ERROR REGISTER:", error);
+      throw error;
+    }
+  }
+
+  async function logout() {
+    const refreshToken = getRefreshToken();
+
+    /*
+     * Limpiamos primero la sesión local para que el usuario salga
+     * inmediatamente, aunque Railway esté temporalmente caído.
+     */
+    clearSession();
+
+    if (!refreshToken) {
+      return;
     }
 
-    saveSession(data.token, data.user);
-
-    return data;
+    try {
+      await fetch(
+        `${API_URL}/api/auth/logout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            refreshToken,
+          }),
+        },
+      );
+    } catch (error) {
+      console.error(
+        "No se pudo informar el logout al backend:",
+        error,
+      );
+    }
   }
 
-  function logout() {
-    localStorage.removeItem("figuritas_token");
-    localStorage.removeItem("figuritas_user");
-
-    setAuthToken(null);
-    setToken(null);
-    setUser(null);
-  }
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      loading,
+      login,
+      register,
+      logout,
+      isAuthenticated: Boolean(token && user),
+    }),
+    [user, token, loading],
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        login,
-        register,
-        logout,
-        isAuthenticated: Boolean(token),
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -150,7 +308,7 @@ export function useAuth() {
 
   if (!context) {
     throw new Error(
-      "useAuth debe utilizarse dentro de AuthProvider"
+      "useAuth debe utilizarse dentro de AuthProvider",
     );
   }
 
