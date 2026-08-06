@@ -1,4 +1,8 @@
 import {
+  Suspense,
+  lazy,
+} from "react";
+import {
   Navigate,
   Route,
   Routes,
@@ -9,16 +13,37 @@ import Register from "./pages/Register.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 
-import Dashboard from "./pages/Dashboard.jsx";
-import Album from "./pages/Album.jsx";
-import Matches from "./pages/Matches.jsx";
-import Faltantes from "./pages/Faltantes.jsx";
-import Repetidas from "./pages/Repetidas.jsx";
-import Chat from "./pages/Chat.jsx";
-import TradeCenter from "./pages/TradeCenter.jsx";
-
 import { useAuth } from "./context/AuthContext.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
+import PageLoader from "./components/PageLoader.jsx";
+
+const Dashboard = lazy(() =>
+  import("./pages/Dashboard.jsx")
+);
+
+const Album = lazy(() =>
+  import("./pages/Album.jsx")
+);
+
+const Matches = lazy(() =>
+  import("./pages/Matches.jsx")
+);
+
+const Faltantes = lazy(() =>
+  import("./pages/Faltantes.jsx")
+);
+
+const Repetidas = lazy(() =>
+  import("./pages/Repetidas.jsx")
+);
+
+const Chat = lazy(() =>
+  import("./pages/Chat.jsx")
+);
+
+const TradeCenter = lazy(() =>
+  import("./pages/TradeCenter.jsx")
+);
 
 function ProtectedRoute() {
   const {
@@ -27,7 +52,7 @@ function ProtectedRoute() {
   } = useAuth();
 
   if (loading) {
-    return <p>Cargando...</p>;
+    return <PageLoader />;
   }
 
   if (!isAuthenticated) {
@@ -42,85 +67,99 @@ function ProtectedRoute() {
   return <AppLayout />;
 }
 
+function HomeRedirect() {
+  const {
+    isAuthenticated,
+    loading,
+  } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  return (
+    <Navigate
+      to={
+        isAuthenticated
+          ? "/dashboard"
+          : "/login"
+      }
+      replace
+    />
+  );
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <Navigate
-            to="/dashboard"
-            replace
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route
+          path="/"
+          element={<HomeRedirect />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        <Route
+          path="/reset-password/:token"
+          element={<ResetPassword />}
+        />
+
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
           />
-        }
-      />
 
-      <Route
-        path="/login"
-        element={<Login />}
-      />
-
-      <Route
-        path="/register"
-        element={<Register />}
-      />
-
-      <Route
-        path="/forgot-password"
-        element={<ForgotPassword />}
-      />
-
-      <Route
-        path="/reset-password/:token"
-        element={<ResetPassword />}
-      />
-
-      <Route element={<ProtectedRoute />}>
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-
-        <Route
-          path="/album"
-          element={<Album />}
-        />
-
-        <Route
-          path="/matches"
-          element={<Matches />}
-        />
-
-        <Route
-          path="/faltantes"
-          element={<Faltantes />}
-        />
-
-        <Route
-          path="/repetidas"
-          element={<Repetidas />}
-        />
-
-        <Route
-          path="/chat"
-          element={<Chat />}
-        />
-
-        <Route
-          path="/intercambios"
-          element={<TradeCenter />}
-        />
-      </Route>
-
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/dashboard"
-            replace
+          <Route
+            path="/album"
+            element={<Album />}
           />
-        }
-      />
-    </Routes>
+
+          <Route
+            path="/matches"
+            element={<Matches />}
+          />
+
+          <Route
+            path="/faltantes"
+            element={<Faltantes />}
+          />
+
+          <Route
+            path="/repetidas"
+            element={<Repetidas />}
+          />
+
+          <Route
+            path="/chat"
+            element={<Chat />}
+          />
+
+          <Route
+            path="/intercambios"
+            element={<TradeCenter />}
+          />
+        </Route>
+
+        <Route
+          path="*"
+          element={<HomeRedirect />}
+        />
+      </Routes>
+    </Suspense>
   );
 }
