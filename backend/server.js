@@ -17,6 +17,8 @@ import matchRoutes from "./routes/matches.js";
 import messageRoutes from "./routes/messages.js";
 import teamsRoutes from "./routes/teams.js";
 import tradeRequestsRoutes from "./routes/tradeRequests.js";
+import notificationRoutes from "./routes/notifications.js";
+
 
 dotenv.config();
 
@@ -122,6 +124,7 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/import", importExcelRoutes);
 app.use("/api/teams", teamsRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use(
   "/api/trade-requests",
   tradeRequestsRoutes,

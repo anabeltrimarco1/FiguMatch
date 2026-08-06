@@ -1,0 +1,5 @@
+// AGREGAR ARRIBA, junto a los otros imports:
+import notificationRoutes from "./routes/notifications.js";
+
+// AGREGAR JUNTO A LAS OTRAS RUTAS:
+app.use("/api/notifications", notificationRoutes);

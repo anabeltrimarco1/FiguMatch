@@ -5,11 +5,13 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
+import { NotificationProvider } from "./context/NotificationContext.jsx";
 
 import "./styles/theme.css";
 import "./styles/layout.css";
 import "./styles/componentes.css";
 import "./styles/socket-status.css";
+import "./styles/notifications.css";
 
 ReactDOM.createRoot(
   document.getElementById("root"),
@@ -18,7 +20,9 @@ ReactDOM.createRoot(
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
-          <App />
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>
