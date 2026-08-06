@@ -36,6 +36,13 @@ export function requireAuth(req, res, next) {
       process.env.JWT_SECRET,
     );
 
+    if (payload.type && payload.type !== "access") {
+      return res.status(401).json({
+        error: "El token enviado no es un access token.",
+        code: "AUTH_WRONG_TOKEN_TYPE",
+      });
+    }
+
     const userId = Number(payload.userId);
 
     if (!Number.isInteger(userId) || userId <= 0) {
@@ -52,7 +59,7 @@ export function requireAuth(req, res, next) {
   } catch (error) {
     if (error?.name === "TokenExpiredError") {
       return res.status(401).json({
-        error: "Tu sesión venció. Iniciá sesión nuevamente.",
+        error: "El access token venció.",
         code: "AUTH_TOKEN_EXPIRED",
       });
     }

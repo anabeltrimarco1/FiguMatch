@@ -16,7 +16,10 @@ const USERNAME_MAX_LENGTH = 40;
 const PASSWORD_MIN_LENGTH = 6;
 const EMAIL_MAX_LENGTH = 160;
 
-function signToken(user) {
+const ACCESS_TOKEN_EXPIRES_IN = "15m";
+const REFRESH_TOKEN_DAYS = 7;
+
+function signAccessToken(user) {
   if (!process.env.JWT_SECRET) {
     throw new Error("Falta configurar JWT_SECRET.");
   }
@@ -25,10 +28,61 @@ function signToken(user) {
     {
       userId: user.id,
       username: user.username,
+      type: "access",
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" },
+    { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
   );
+}
+
+function createRefreshTokenValue() {
+  return crypto.randomBytes(64).toString("hex");
+}
+
+function hashToken(token) {
+  return crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+}
+
+function getRefreshExpirationDate() {
+  return new Date(
+    Date.now() + REFRESH_TOKEN_DAYS * 24 * 60 * 60 * 1000,
+  );
+}
+
+async function issueSession(user, metadata = {}) {
+  const accessToken = signAccessToken(user);
+  const refreshToken = createRefreshTokenValue();
+  const tokenHash = hashToken(refreshToken);
+  const expiresAt = getRefreshExpirationDate();
+
+  await query(
+    `
+    INSERT INTO refresh_tokens (
+      user_id,
+      token_hash,
+      expires_at,
+      user_agent,
+      ip_address
+    )
+    VALUES ($1, $2, $3, $4, $5)
+    `,
+    [
+      user.id,
+      tokenHash,
+      expiresAt,
+      metadata.userAgent || null,
+      metadata.ipAddress || null,
+    ],
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresInSeconds: 15 * 60,
+  };
 }
 
 function normalizeUsername(value) {
@@ -128,6 +182,13 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function getRequestMetadata(req) {
+  return {
+    userAgent: String(req.headers["user-agent"] || "").slice(0, 500),
+    ipAddress: req.ip || null,
+  };
+}
+
 // REGISTRO
 router.post("/register", async (req, res) => {
   try {
@@ -157,10 +218,6 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: passwordError });
     }
 
-    /*
-     * Username: comparación exacta y sensible a mayúsculas.
-     * Email: comparación sin distinguir mayúsculas.
-     */
     const existing = await query(
       `
       SELECT id, username, email
@@ -227,10 +284,20 @@ router.post("/register", async (req, res) => {
       [user.id],
     );
 
-    const token = signToken(user);
+    const session = await issueSession(
+      user,
+      getRequestMetadata(req),
+    );
 
     return res.status(201).json({
-      token,
+      /*
+       * "token" se mantiene temporalmente para no romper
+       * el frontend actual antes del Sprint 6.5.4.
+       */
+      token: session.accessToken,
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresInSeconds: session.expiresInSeconds,
       user,
       message: "Cuenta creada correctamente.",
     });
@@ -261,10 +328,6 @@ router.post("/login", loginRateLimiter, async (req, res) => {
       });
     }
 
-    /*
-     * Username: comparación exacta, distingue mayúsculas.
-     * Email: comparación sin distinguir mayúsculas.
-     */
     const result = await query(
       `
       SELECT
@@ -301,10 +364,16 @@ router.post("/login", loginRateLimiter, async (req, res) => {
 
     delete user.password_hash;
 
-    const token = signToken(user);
+    const session = await issueSession(
+      user,
+      getRequestMetadata(req),
+    );
 
     return res.json({
-      token,
+      token: session.accessToken,
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresInSeconds: session.expiresInSeconds,
       user,
       message: "Inicio de sesión correcto.",
     });
@@ -317,167 +386,305 @@ router.post("/login", loginRateLimiter, async (req, res) => {
   }
 });
 
+// RENOVAR ACCESS TOKEN
+router.post("/refresh", async (req, res) => {
+  try {
+    const refreshToken = String(
+      req.body.refreshToken || "",
+    ).trim();
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        error: "Falta el refresh token.",
+        code: "REFRESH_TOKEN_MISSING",
+      });
+    }
+
+    const tokenHash = hashToken(refreshToken);
+
+    const result = await query(
+      `
+      SELECT
+        rt.id AS refresh_token_id,
+        rt.user_id,
+        rt.expires_at,
+        rt.revoked_at,
+        u.username,
+        u.email
+      FROM refresh_tokens rt
+      INNER JOIN users u
+        ON u.id = rt.user_id
+      WHERE rt.token_hash = $1
+      LIMIT 1
+      `,
+      [tokenHash],
+    );
+
+    const storedToken = result.rows[0];
+
+    if (!storedToken) {
+      return res.status(401).json({
+        error: "La sesión no es válida.",
+        code: "REFRESH_TOKEN_INVALID",
+      });
+    }
+
+    if (storedToken.revoked_at) {
+      return res.status(401).json({
+        error: "La sesión fue cerrada.",
+        code: "REFRESH_TOKEN_REVOKED",
+      });
+    }
+
+    if (new Date(storedToken.expires_at).getTime() <= Date.now()) {
+      await query(
+        `
+        UPDATE refresh_tokens
+        SET revoked_at = NOW()
+        WHERE id = $1
+        `,
+        [storedToken.refresh_token_id],
+      );
+
+      return res.status(401).json({
+        error: "La sesión venció. Iniciá sesión nuevamente.",
+        code: "REFRESH_TOKEN_EXPIRED",
+      });
+    }
+
+    /*
+     * Rotación de refresh token:
+     * el token usado se revoca y se emite uno nuevo.
+     */
+    await query(
+      `
+      UPDATE refresh_tokens
+      SET revoked_at = NOW()
+      WHERE id = $1
+      `,
+      [storedToken.refresh_token_id],
+    );
+
+    const user = {
+      id: storedToken.user_id,
+      username: storedToken.username,
+      email: storedToken.email,
+    };
+
+    const session = await issueSession(
+      user,
+      getRequestMetadata(req),
+    );
+
+    return res.json({
+      token: session.accessToken,
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresInSeconds: session.expiresInSeconds,
+      user,
+    });
+  } catch (error) {
+    console.error("ERROR REFRESH TOKEN:", error);
+
+    return res.status(500).json({
+      error: "No se pudo renovar la sesión.",
+    });
+  }
+});
+
+// LOGOUT
+router.post("/logout", async (req, res) => {
+  try {
+    const refreshToken = String(
+      req.body.refreshToken || "",
+    ).trim();
+
+    if (refreshToken) {
+      const tokenHash = hashToken(refreshToken);
+
+      await query(
+        `
+        UPDATE refresh_tokens
+        SET revoked_at = COALESCE(revoked_at, NOW())
+        WHERE token_hash = $1
+        `,
+        [tokenHash],
+      );
+    }
+
+    /*
+     * Siempre responde correctamente para que el logout
+     * sea idempotente y no revele si el token existía.
+     */
+    return res.json({
+      message: "Sesión cerrada correctamente.",
+    });
+  } catch (error) {
+    console.error("ERROR LOGOUT:", error);
+
+    return res.status(500).json({
+      error: "No se pudo cerrar la sesión.",
+    });
+  }
+});
+
 // RECUPERACIÓN DE CONTRASEÑA
 router.post(
   "/forgot-password",
   passwordRecoveryRateLimiter,
   async (req, res) => {
-  const genericMessage =
-    "Si existe una cuenta asociada a ese correo, recibirás un enlace para recuperar tu contraseña.";
+    const genericMessage =
+      "Si existe una cuenta asociada a ese correo, recibirás un enlace para recuperar tu contraseña.";
 
-  let userId = null;
+    let userId = null;
 
-  try {
-    const email = normalizeEmail(req.body.email);
+    try {
+      const email = normalizeEmail(req.body.email);
 
-    if (!email) {
-      return res.status(400).json({
-        error: "Ingresá tu correo electrónico.",
+      if (!email) {
+        return res.status(400).json({
+          error: "Ingresá tu correo electrónico.",
+        });
+      }
+
+      if (email.length > EMAIL_MAX_LENGTH || !isValidEmail(email)) {
+        return res.status(400).json({
+          error: "Ingresá un correo electrónico válido.",
+        });
+      }
+
+      const result = await query(
+        `
+        SELECT
+          id,
+          TRIM(username) AS username,
+          TRIM(email) AS email
+        FROM users
+        WHERE LOWER(TRIM(email)) = LOWER($1)
+        LIMIT 1
+        `,
+        [email],
+      );
+
+      const user = result.rows[0];
+
+      if (!user) {
+        return res.json({
+          message: genericMessage,
+        });
+      }
+
+      userId = Number(user.id);
+
+      const rawToken = crypto.randomBytes(32).toString("hex");
+
+      const tokenHash = hashToken(rawToken);
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      await query(
+        `
+        UPDATE users
+        SET
+          reset_password_token = $1,
+          reset_password_expires = $2
+        WHERE id = $3
+        `,
+        [tokenHash, expiresAt, userId],
+      );
+
+      const frontendUrl =
+        process.env.FRONTEND_URL || "http://localhost:5173";
+
+      const resetUrl =
+        `${frontendUrl}/reset-password/${encodeURIComponent(rawToken)}`;
+
+      const transporter = createMailTransporter();
+
+      await transporter.verify();
+
+      const safeUsername = escapeHtml(
+        user.username || "Coleccionista",
+      );
+
+      const info = await transporter.sendMail({
+        from: process.env.MAIL_FROM,
+        to: user.email,
+        subject: "Recuperá tu contraseña de FiguMatch",
+        text: [
+          `Hola ${user.username || "Coleccionista"},`,
+          "",
+          "Recibimos una solicitud para cambiar tu contraseña.",
+          "",
+          `Abrí este enlace: ${resetUrl}`,
+          "",
+          "El enlace vence en 30 minutos.",
+          "",
+          "Si no hiciste esta solicitud, ignorá este correo.",
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#172554">
+            <h1 style="margin:0 0 24px;color:#2563eb">FiguMatch</h1>
+            <p>Hola <strong>${safeUsername}</strong>,</p>
+            <p>Recibimos una solicitud para cambiar tu contraseña.</p>
+            <p style="margin:30px 0">
+              <a
+                href="${resetUrl}"
+                style="display:inline-block;padding:14px 22px;border-radius:10px;background:#2563eb;color:#fff;font-weight:bold;text-decoration:none"
+              >
+                Restablecer contraseña
+              </a>
+            </p>
+            <p>Este enlace vence en <strong>30 minutos</strong>.</p>
+            <p style="margin-top:24px;color:#64748b;font-size:13px">
+              Si no hiciste esta solicitud, podés ignorar este correo.
+            </p>
+          </div>
+        `,
       });
-    }
 
-    if (email.length > EMAIL_MAX_LENGTH || !isValidEmail(email)) {
-      return res.status(400).json({
-        error: "Ingresá un correo electrónico válido.",
+      console.log("MAIL DE RECUPERACIÓN ENVIADO:", {
+        messageId: info.messageId,
+        destinatario: user.email,
+        respuesta: info.response,
       });
-    }
 
-    const result = await query(
-      `
-      SELECT
-        id,
-        TRIM(username) AS username,
-        TRIM(email) AS email
-      FROM users
-      WHERE LOWER(TRIM(email)) = LOWER($1)
-      LIMIT 1
-      `,
-      [email],
-    );
-
-    const user = result.rows[0];
-
-    if (!user) {
       return res.json({
         message: genericMessage,
       });
-    }
+    } catch (error) {
+      console.error("ERROR FORGOT PASSWORD:", {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+      });
 
-    userId = Number(user.id);
-
-    const rawToken = crypto.randomBytes(32).toString("hex");
-
-    const tokenHash = crypto
-      .createHash("sha256")
-      .update(rawToken)
-      .digest("hex");
-
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-
-    await query(
-      `
-      UPDATE users
-      SET
-        reset_password_token = $1,
-        reset_password_expires = $2
-      WHERE id = $3
-      `,
-      [tokenHash, expiresAt, userId],
-    );
-
-    const frontendUrl =
-      process.env.FRONTEND_URL || "http://localhost:5173";
-
-    const resetUrl =
-      `${frontendUrl}/reset-password/${encodeURIComponent(rawToken)}`;
-
-    const transporter = createMailTransporter();
-
-    await transporter.verify();
-
-    const safeUsername = escapeHtml(
-      user.username || "Coleccionista",
-    );
-
-    const info = await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: user.email,
-      subject: "Recuperá tu contraseña de FiguMatch",
-      text: [
-        `Hola ${user.username || "Coleccionista"},`,
-        "",
-        "Recibimos una solicitud para cambiar tu contraseña.",
-        "",
-        `Abrí este enlace: ${resetUrl}`,
-        "",
-        "El enlace vence en 30 minutos.",
-        "",
-        "Si no hiciste esta solicitud, ignorá este correo.",
-      ].join("\n"),
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#172554">
-          <h1 style="margin:0 0 24px;color:#2563eb">FiguMatch</h1>
-          <p>Hola <strong>${safeUsername}</strong>,</p>
-          <p>Recibimos una solicitud para cambiar tu contraseña.</p>
-          <p style="margin:30px 0">
-            <a
-              href="${resetUrl}"
-              style="display:inline-block;padding:14px 22px;border-radius:10px;background:#2563eb;color:#fff;font-weight:bold;text-decoration:none"
-            >
-              Restablecer contraseña
-            </a>
-          </p>
-          <p>Este enlace vence en <strong>30 minutos</strong>.</p>
-          <p style="margin-top:24px;color:#64748b;font-size:13px">
-            Si no hiciste esta solicitud, podés ignorar este correo.
-          </p>
-        </div>
-      `,
-    });
-
-    console.log("MAIL DE RECUPERACIÓN ENVIADO:", {
-      messageId: info.messageId,
-      destinatario: user.email,
-      respuesta: info.response,
-    });
-
-    return res.json({
-      message: genericMessage,
-    });
-  } catch (error) {
-    console.error("ERROR FORGOT PASSWORD:", {
-      message: error.message,
-      code: error.code,
-      command: error.command,
-      response: error.response,
-      responseCode: error.responseCode,
-    });
-
-    if (Number.isInteger(userId) && userId > 0) {
-      try {
-        await query(
-          `
-          UPDATE users
-          SET
-            reset_password_token = NULL,
-            reset_password_expires = NULL
-          WHERE id = $1
-          `,
-          [userId],
-        );
-      } catch (cleanupError) {
-        console.error(
-          "ERROR AL LIMPIAR TOKEN DE RECUPERACIÓN:",
-          cleanupError,
-        );
+      if (Number.isInteger(userId) && userId > 0) {
+        try {
+          await query(
+            `
+            UPDATE users
+            SET
+              reset_password_token = NULL,
+              reset_password_expires = NULL
+            WHERE id = $1
+            `,
+            [userId],
+          );
+        } catch (cleanupError) {
+          console.error(
+            "ERROR AL LIMPIAR TOKEN DE RECUPERACIÓN:",
+            cleanupError,
+          );
+        }
       }
-    }
 
-    return res.status(500).json({
-      error:
-        "No se pudo enviar el correo. Revisá la configuración SMTP del backend.",
-    });
-  }
+      return res.status(500).json({
+        error:
+          "No se pudo enviar el correo. Revisá la configuración SMTP del backend.",
+      });
+    }
   },
 );
 
@@ -498,10 +705,7 @@ router.post("/reset-password", async (req, res) => {
       return res.status(400).json({ error: passwordError });
     }
 
-    const tokenHash = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
+    const tokenHash = hashToken(token);
 
     const result = await query(
       `
@@ -534,6 +738,19 @@ router.post("/reset-password", async (req, res) => {
       WHERE id = $2
       `,
       [passwordHash, user.id],
+    );
+
+    /*
+     * Revoca todas las sesiones abiertas después de cambiar
+     * la contraseña.
+     */
+    await query(
+      `
+      UPDATE refresh_tokens
+      SET revoked_at = COALESCE(revoked_at, NOW())
+      WHERE user_id = $1
+      `,
+      [user.id],
     );
 
     return res.json({
