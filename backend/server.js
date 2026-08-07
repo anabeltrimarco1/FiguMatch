@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
+import helmet from "helmet";
 
 import groupRoutes from "./routes/groups.js";
 import importExcelRoutes from "./routes/importExcel.js";
@@ -24,6 +25,11 @@ dotenv.config();
 
 const app = express();
 
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  }),
+);
 /* Railway/Vercel usan proxies. Esto permite identificar correctamente la IP real. */
 app.set("trust proxy", 1);
 
