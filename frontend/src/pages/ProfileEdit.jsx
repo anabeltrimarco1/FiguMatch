@@ -392,7 +392,9 @@ export default function ProfileEdit() {
             savedProfile.avatarUrl || "",
         });
 
-        updateUser(savedProfile);
+        if (typeof updateUser === "function") {
+          updateUser(savedProfile);
+        }
       }
 
       setMessage(

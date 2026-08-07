@@ -61,6 +61,14 @@ export function AuthProvider({ children }) {
         "La respuesta del servidor no contiene una sesión válida.",
       );
     }
+    function updateUser(updatedUser) {
+      localStorage.setItem(
+        USER_KEY,
+        JSON.stringify(updatedUser)
+      );
+
+      setUser(updatedUser);
+    }
 
     setAuthToken(accessToken);
     setToken(accessToken);
@@ -299,11 +307,11 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateUser,
       isAuthenticated: Boolean(token && user),
     }),
     [user, token, loading],
   );
-
   return (
     <AuthContext.Provider value={value}>
       {children}
