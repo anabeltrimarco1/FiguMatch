@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
+
 import {
   API_URL,
   clearStoredSession,
@@ -14,6 +15,7 @@ import {
   saveRefreshToken,
   setAuthToken,
 } from "../api";
+
 import {
   connectSocket,
   disconnectSocket,
@@ -54,20 +56,13 @@ export function AuthProvider({ children }) {
     const refreshToken =
       sessionData.refreshToken || getRefreshToken();
 
-    const sessionUser = sessionData.user || user;
+    const sessionUser =
+      sessionData.user || user;
 
     if (!accessToken || !sessionUser) {
       throw new Error(
         "La respuesta del servidor no contiene una sesión válida.",
       );
-    }
-    function updateUser(updatedUser) {
-      localStorage.setItem(
-        USER_KEY,
-        JSON.stringify(updatedUser)
-      );
-
-      setUser(updatedUser);
     }
 
     setAuthToken(accessToken);
@@ -83,12 +78,32 @@ export function AuthProvider({ children }) {
     );
 
     setUser(sessionUser);
+
     connectSocket(accessToken);
+  }
+
+  function updateUser(updatedUser) {
+    if (!updatedUser) {
+      return;
+    }
+
+    const mergedUser = {
+      ...(user || {}),
+      ...updatedUser,
+    };
+
+    localStorage.setItem(
+      USER_KEY,
+      JSON.stringify(mergedUser),
+    );
+
+    setUser(mergedUser);
   }
 
   function clearSession() {
     disconnectSocket();
     clearStoredSession();
+
     setToken(null);
     setUser(null);
 
@@ -107,7 +122,8 @@ export function AuthProvider({ children }) {
       const savedRefreshToken =
         localStorage.getItem(REFRESH_TOKEN_KEY);
 
-      const savedUser = parseStoredUser();
+      const savedUser =
+        parseStoredUser();
 
       if (savedUser && isMounted) {
         setUser(savedUser);
@@ -124,7 +140,8 @@ export function AuthProvider({ children }) {
 
       if (savedRefreshToken) {
         try {
-          const newAccessToken = await refreshAccessToken();
+          const newAccessToken =
+            await refreshAccessToken();
 
           reconnectSocket(newAccessToken);
 
@@ -156,7 +173,8 @@ export function AuthProvider({ children }) {
         event.detail?.accessToken;
 
       const refreshedUser =
-        event.detail?.user || parseStoredUser();
+        event.detail?.user ||
+        parseStoredUser();
 
       if (refreshedAccessToken) {
         setToken(refreshedAccessToken);
@@ -218,8 +236,8 @@ export function AuthProvider({ children }) {
       if (!response.ok) {
         throw new Error(
           data.error ||
-          data.message ||
-          "No se pudo iniciar sesión.",
+            data.message ||
+            "No se pudo iniciar sesión.",
         );
       }
 
@@ -254,8 +272,8 @@ export function AuthProvider({ children }) {
       if (!response.ok) {
         throw new Error(
           data.error ||
-          data.message ||
-          "No se pudo registrar.",
+            data.message ||
+            "No se pudo registrar.",
         );
       }
 
@@ -269,7 +287,8 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    const refreshToken = getRefreshToken();
+    const refreshToken =
+      getRefreshToken();
 
     clearSession();
 
@@ -310,8 +329,13 @@ export function AuthProvider({ children }) {
       updateUser,
       isAuthenticated: Boolean(token && user),
     }),
-    [user, token, loading],
+    [
+      user,
+      token,
+      loading,
+    ],
   );
+
   return (
     <AuthContext.Provider value={value}>
       {children}
@@ -330,4 +354,3 @@ export function useAuth() {
 
   return context;
 }
-
