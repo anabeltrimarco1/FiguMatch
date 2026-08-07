@@ -87,6 +87,7 @@ export default function Chat() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState("");
   const [onlineUserIds, setOnlineUserIds] = useState([]);
+  const [typingUserId, setTypingUserId] = useState(null);
 
   const hasRequestedUser =
     Number.isInteger(requestedUserId) &&
@@ -317,12 +318,28 @@ export default function Chat() {
       });
     };
 
+    const handleTypingStart = ({ userId }) => {
+      if (Number(userId) === Number(selectedUserId)) {
+        setTypingUserId(Number(userId));
+      }
+    };
+
+    const handleTypingStop = ({ userId }) => {
+      if (Number(userId) === Number(selectedUserId)) {
+        setTypingUserId(null);
+      }
+    };
+
     socket.on("message:new", handleIncomingMessage);
     socket.on("message:sent", handleSentMessage);
+    socket.on("typing:start", handleTypingStart);
+    socket.on("typing:stop", handleTypingStop);
 
     return () => {
       socket.off("message:new", handleIncomingMessage);
       socket.off("message:sent", handleSentMessage);
+      socket.off("typing:start", handleTypingStart);
+      socket.off("typing:stop", handleTypingStop);
     };
   }, [selectedUserId, loadConversations]);
 
@@ -336,6 +353,7 @@ export default function Chat() {
 
   const handleSelectConversation = (conversationId) => {
     setSelectedUserId(Number(conversationId));
+    setTypingUserId(null);
 
     setConversations((currentConversations) =>
       currentConversations.map((conversation) =>
@@ -411,6 +429,28 @@ export default function Chat() {
     }
   };
 
+  const handleTypingStartEmit = () => {
+    const token = localStorage.getItem("figuritas_token");
+    if (!token || !selectedUserId) return;
+
+    const socket = connectSocket(token);
+
+    socket?.emit("typing:start", {
+      receiverId: Number(selectedUserId),
+    });
+  };
+
+  const handleTypingStopEmit = () => {
+    const token = localStorage.getItem("figuritas_token");
+    if (!token || !selectedUserId) return;
+
+    const socket = connectSocket(token);
+
+    socket?.emit("typing:stop", {
+      receiverId: Number(selectedUserId),
+    });
+  };
+
   return (
     <section className="chat-page-content">
       <div className="chat-page-inner">
@@ -454,6 +494,9 @@ export default function Chat() {
                 isLoading={loadingMessages}
                 isSending={sendingMessage}
                 onSendMessage={handleSendMessage}
+                onTypingStart={handleTypingStartEmit}
+                onTypingStop={handleTypingStopEmit}
+                typing={typingUserId === Number(selectedUserId)}
               />
             )}
           </div>

@@ -3,6 +3,8 @@ import { useState } from "react";
 export default function MessageInput({
   onSendMessage,
   isSending = false,
+  onTypingStart,
+  onTypingStop,
 }) {
   const [message, setMessage] = useState("");
   const [localError, setLocalError] = useState("");
@@ -22,6 +24,9 @@ export default function MessageInput({
       await onSendMessage(cleanMessage);
 
       setMessage("");
+
+      // Dejar de mostrar "escribiendo..."
+      onTypingStop?.();
     } catch (error) {
       console.error("No se pudo enviar el mensaje:", error);
 
@@ -47,7 +52,18 @@ export default function MessageInput({
 
         <input
           value={message}
-          onChange={(event) => setMessage(event.target.value)}
+          onChange={(event) => {
+            const value = event.target.value;
+
+            setMessage(value);
+
+            if (value.trim()) {
+              onTypingStart?.();
+            } else {
+              onTypingStop?.();
+            }
+          }}
+          onBlur={() => onTypingStop?.()}
           placeholder="Escribí un mensaje..."
           disabled={isSending}
         />

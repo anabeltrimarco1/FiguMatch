@@ -9,6 +9,9 @@ export default function ChatWindow({
   onSendMessage,
   isLoading = false,
   isSending = false,
+  typing = false,
+  onTypingStart,
+  onTypingStop,
 }) {
   const messagesEndRef = useRef(null);
 
@@ -97,12 +100,20 @@ export default function ChatWindow({
           ))
         )}
 
+        {typing && (
+          <div className="chat-typing-indicator">
+            ✍️ {conversation.username} está escribiendo...
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
       <MessageInput
         onSendMessage={onSendMessage}
         isSending={isSending}
+        onTypingStart={onTypingStart}
+        onTypingStop={onTypingStop}
       />
     </section>
   );
