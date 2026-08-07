@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query } from "../config/db.js";
+import { query, getClient } from "../config/db.js";
 import { requireAuth } from "../middleware/auth.js";
 import {
   createNotificationSafely,
@@ -536,5 +536,303 @@ router.put("/:id/cancel", requireAuth, async (req, res) => {
     });
   }
 });
+/* =====================================================
+   COMPLETAR INTERCAMBIO
+===================================================== */
 
-export default router;
+router.put("/:id/complete", requireAuth, async (req, res) => {
+  const tradeId = Number(req.params.id);
+  const authenticatedUserId = Number(req.userId);
+
+  if (!Number.isInteger(tradeId) || tradeId <= 0) {
+    return res.status(400).json({
+      error: "Identificador de solicitud inválido",
+    });
+  }
+
+  const client = await getClient();
+
+  try {
+    await client.query("BEGIN");
+
+    const tradeResult = await client.query(
+      `
+      SELECT
+        id,
+        requester_id,
+        receiver_id,
+        offered_sticker_id,
+        requested_sticker_id,
+        status
+      FROM trade_requests
+      WHERE id = $1
+      FOR UPDATE
+      `,
+      [tradeId],
+    );
+
+    if (tradeResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+
+      return res.status(404).json({
+        error: "La solicitud de intercambio no existe",
+      });
+    }
+
+    const trade = tradeResult.rows[0];
+        const isParticipant =
+      authenticatedUserId === Number(trade.requester_id) ||
+      authenticatedUserId === Number(trade.receiver_id);
+
+    if (!isParticipant) {
+      await client.query("ROLLBACK");
+
+      return res.status(403).json({
+        error:
+          "No tenés permiso para completar este intercambio",
+      });
+    }
+
+    if (trade.status !== "accepted") {
+      await client.query("ROLLBACK");
+
+      return res.status(409).json({
+        error:
+          "Solo se pueden completar intercambios aceptados",
+      });
+    } 
+        const requesterStickerResult = await client.query(
+      `
+      SELECT
+        user_id,
+        sticker_id,
+        status,
+        quantity
+      FROM user_stickers
+      WHERE user_id = $1
+        AND sticker_id = $2
+      FOR UPDATE
+      `,
+      [
+        trade.requester_id,
+        trade.offered_sticker_id,
+      ],
+    );
+
+    const requesterSticker =
+      requesterStickerResult.rows[0];
+
+    if (
+      !requesterSticker ||
+      requesterSticker.status !== "repetida" ||
+      Number(requesterSticker.quantity || 0) < 2
+    ) {
+      await client.query("ROLLBACK");
+
+      return res.status(409).json({
+        error:
+          "La figurita ofrecida ya no está disponible como repetida",
+      });
+    }
+        const receiverStickerResult = await client.query(
+      `
+      SELECT
+        user_id,
+        sticker_id,
+        status,
+        quantity
+      FROM user_stickers
+      WHERE user_id = $1
+        AND sticker_id = $2
+      FOR UPDATE
+      `,
+      [
+        trade.receiver_id,
+        trade.requested_sticker_id,
+      ],
+    );
+
+    const receiverSticker =
+      receiverStickerResult.rows[0];
+
+    if (
+      !receiverSticker ||
+      receiverSticker.status !== "repetida" ||
+      Number(receiverSticker.quantity || 0) < 2
+    ) {
+      await client.query("ROLLBACK");
+
+      return res.status(409).json({
+        error:
+          "La figurita solicitada ya no está disponible como repetida",
+      });
+    }
+        await client.query(
+      `
+      UPDATE user_stickers
+      SET
+        quantity = quantity - 1,
+        status = CASE
+          WHEN quantity - 1 >= 2
+            THEN 'repetida'
+          ELSE 'tengo'
+        END
+      WHERE user_id = $1
+        AND sticker_id = $2
+      `,
+      [
+        trade.requester_id,
+        trade.offered_sticker_id,
+      ],
+    );
+        await client.query(
+      `
+      UPDATE user_stickers
+      SET
+        quantity = quantity - 1,
+        status = CASE
+          WHEN quantity - 1 >= 2
+            THEN 'repetida'
+          ELSE 'tengo'
+        END
+      WHERE user_id = $1
+        AND sticker_id = $2
+      `,
+      [
+        trade.receiver_id,
+        trade.requested_sticker_id,
+      ],
+    );
+        await client.query(
+      `
+      INSERT INTO user_stickers (
+        user_id,
+        sticker_id,
+        status,
+        quantity
+      )
+      VALUES (
+        $1,
+        $2,
+        'tengo',
+        1
+      )
+      ON CONFLICT (user_id, sticker_id)
+      DO UPDATE SET
+        quantity = user_stickers.quantity + 1,
+        status = CASE
+          WHEN user_stickers.quantity + 1 >= 2
+            THEN 'repetida'
+          ELSE 'tengo'
+        END
+      `,
+      [
+        trade.receiver_id,
+        trade.offered_sticker_id,
+      ],
+    );
+        await client.query(
+      `
+      INSERT INTO user_stickers (
+        user_id,
+        sticker_id,
+        status,
+        quantity
+      )
+      VALUES (
+        $1,
+        $2,
+        'tengo',
+        1
+      )
+      ON CONFLICT (user_id, sticker_id)
+      DO UPDATE SET
+        quantity = user_stickers.quantity + 1,
+        status = CASE
+          WHEN user_stickers.quantity + 1 >= 2
+            THEN 'repetida'
+          ELSE 'tengo'
+        END
+      `,
+      [
+        trade.requester_id,
+        trade.requested_sticker_id,
+      ],
+    );
+        const completedResult = await client.query(
+      `
+      UPDATE trade_requests
+      SET
+        status = 'completed',
+        updated_at = NOW()
+      WHERE id = $1
+        AND status = 'accepted'
+      RETURNING *
+      `,
+      [tradeId],
+    );
+
+    if (completedResult.rows.length === 0) {
+      throw new Error(
+        "No se pudo marcar el intercambio como completado",
+      );
+    }
+
+    await client.query("COMMIT");
+
+    const completedTrade = completedResult.rows[0];
+        const io = req.app.get("io");
+
+    const notificationType =
+      NOTIFICATION_TYPES.TRADE_COMPLETED ||
+      "trade_completed";
+
+    await createNotificationSafely({
+      io,
+      userId: completedTrade.requester_id,
+      type: notificationType,
+      title: "Intercambio completado",
+      message:
+        "Tu intercambio fue completado y tu álbum fue actualizado.",
+      link: "/intercambios",
+    });
+
+    await createNotificationSafely({
+      io,
+      userId: completedTrade.receiver_id,
+      type: notificationType,
+      title: "Intercambio completado",
+      message:
+        "Tu intercambio fue completado y tu álbum fue actualizado.",
+      link: "/intercambios",
+    });
+
+    return res.json({
+      message: "Intercambio completado correctamente",
+      tradeRequest: completedTrade,
+    });
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error(
+        "ERROR AL HACER ROLLBACK:",
+        rollbackError,
+      );
+    }
+
+    console.error(
+      "ERROR AL COMPLETAR INTERCAMBIO:",
+      error,
+    );
+
+    return res.status(500).json({
+      error: "No se pudo completar el intercambio",
+      message: error.message,
+    });
+  } finally {
+    client.release();
+  }
+});
+
+  export default router;

@@ -53,3 +53,11 @@ export async function cancelTradeRequest(id) {
 
   return response.data;
 }
+
+export async function completeTradeRequest(tradeRequestId) {
+  const { data } = await api.put(
+    `/trade-requests/${tradeRequestId}/complete`,
+  );
+
+  return data;
+}

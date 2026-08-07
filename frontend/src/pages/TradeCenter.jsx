@@ -6,6 +6,7 @@ import {
   getReceivedTradeRequests,
   getSentTradeRequests,
   rejectTradeRequest,
+  completeTradeRequest,
 } from "../services/tradeService.js";
 import "./TradeCenter.css";
 
@@ -21,6 +22,7 @@ const STATUS_FILTERS = [
   { id: "accepted", label: "Aceptados" },
   { id: "rejected", label: "Rechazados" },
   { id: "cancelled", label: "Cancelados" },
+  { id: "completed", label: "Completados" },
 ];
 
 function formatDate(value) {
@@ -94,6 +96,11 @@ function getStatusConfig(status) {
         icon: "🚫",
         className: "cancelled",
       },
+      completed: {
+        label: "Completado",
+        icon: "🏆",
+        className: "completed",
+      },
     }[value] || {
       label: "Pendiente",
       icon: "⏳",
@@ -153,6 +160,7 @@ function TradeRequestCard({
 }) {
   const status = getStatusConfig(request.status);
   const pending = status.className === "pending";
+  const accepted = status.className === "accepted";
   const busy = busyAction?.requestId === Number(request.id);
 
   return (
@@ -210,15 +218,13 @@ function TradeRequestCard({
           </div>
 
           <div
-            className={`trade-timeline-line ${
-              status.className !== "pending" ? "done" : ""
-            }`}
+            className={`trade-timeline-line ${status.className !== "pending" ? "done" : ""
+              }`}
           />
 
           <div
-            className={`trade-timeline-step ${
-              status.className !== "pending" ? "done" : ""
-            }`}
+            className={`trade-timeline-step ${status.className !== "pending" ? "done" : ""
+              }`}
           >
             <span>2</span>
             <div>
@@ -297,6 +303,19 @@ function TradeRequestCard({
               </button>
             )}
         </div>
+        {!historyMode &&
+          accepted && (
+            <button
+              type="button"
+              className="trade-center-action-button complete"
+              disabled={busy}
+              onClick={() => onAction(request, "complete")}
+            >
+              {busy && busyAction.action === "complete"
+                ? "Completando..."
+                : "✅ Completar intercambio"}
+            </button>
+          )}
       </footer>
     </article>
   );
@@ -328,16 +347,16 @@ export default function TradeCenter() {
       setReceived(
         Array.isArray(receivedData?.tradeRequests)
           ? receivedData.tradeRequests.map((request) =>
-              normalizeRequest(request, "received"),
-            )
+            normalizeRequest(request, "received"),
+          )
           : [],
       );
 
       setSent(
         Array.isArray(sentData?.tradeRequests)
           ? sentData.tradeRequests.map((request) =>
-              normalizeRequest(request, "sent"),
-            )
+            normalizeRequest(request, "sent"),
+          )
           : [],
       );
     } catch (requestError) {
@@ -345,9 +364,9 @@ export default function TradeCenter() {
 
       setError(
         requestError?.response?.data?.error ||
-          requestError?.response?.data?.message ||
-          requestError?.message ||
-          "No se pudieron cargar las solicitudes.",
+        requestError?.response?.data?.message ||
+        requestError?.message ||
+        "No se pudieron cargar las solicitudes.",
       );
     } finally {
       setLoading(false);
@@ -466,10 +485,10 @@ export default function TradeCenter() {
       items.map((request) =>
         Number(request.id) === Number(requestId)
           ? {
-              ...request,
-              status,
-              updated_at: new Date().toISOString(),
-            }
+            ...request,
+            status,
+            updated_at: new Date().toISOString(),
+          }
           : request,
       );
 

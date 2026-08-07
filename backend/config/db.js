@@ -16,3 +16,7 @@ pool.on("error", (err) => {
 export async function query(text, params) {
   return pool.query(text, params);
 }
+
+export async function getClient() {
+  return pool.connect();
+}
