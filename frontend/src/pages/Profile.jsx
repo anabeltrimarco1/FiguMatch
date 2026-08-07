@@ -4,6 +4,56 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./Profile.css";
 
+const TEAM_SHIELDS = {
+  Alemania: "/shields/alemania.svg",
+  "Arabia Saudita": "/shields/arabia saudita.svg",
+  Argelia: "/shields/argelia.svg",
+  Argentina: "/shields/argentina.svg",
+  Australia: "/shields/australia.svg",
+  Austria: "/shields/austria.svg",
+  Bélgica: "/shields/belgica.svg",
+  "Bosnia y Herzegovina": "/shields/bosnia y herzegovina.svg",
+  Brasil: "/shields/brasil.svg",
+  "Cabo Verde": "/shields/cabo verde.svg",
+  Canadá: "/shields/canada.svg",
+  Chequia: "/shields/chequia.svg",
+  Colombia: "/shields/colombia.svg",
+  "Corea del Sur": "/shields/corea del sur.svg",
+  "Costa de Marfil": "/shields/costa de marfil.svg",
+  Croacia: "/shields/croacia.svg",
+  Curazao: "/shields/curazao.svg",
+  Ecuador: "/shields/ecuador.svg",
+  Egipto: "/shields/egipto.svg",
+  Escocia: "/shields/escocia.svg",
+  España: "/shields/espana.svg",
+  "Estados Unidos": "/shields/estados unidos.svg",
+  Francia: "/shields/francia.svg",
+  Ghana: "/shields/ghana.svg",
+  Haití: "/shields/haiti.svg",
+  Inglaterra: "/shields/inglaterra.svg",
+  Irak: "/shields/irak.svg",
+  Irán: "/shields/iran.svg",
+  Japón: "/shields/japon.svg",
+  Jordania: "/shields/jordania.svg",
+  Marruecos: "/shields/marruecos.svg",
+  México: "/shields/mexico.svg",
+  Noruega: "/shields/noruega.svg",
+  "Nueva Zelanda": "/shields/nueva zelanda.svg",
+  "Países Bajos": "/shields/paises bajos.svg",
+  Panamá: "/shields/panama.svg",
+  Paraguay: "/shields/paraguay.svg",
+  Portugal: "/shields/portugal.svg",
+  Qatar: "/shields/qatar.svg",
+  "RD Congo": "/shields/rd congo.svg",
+  Senegal: "/shields/senegal.svg",
+  Sudáfrica: "/shields/sudafrica.png",
+  Suecia: "/shields/suecia.svg",
+  Suiza: "/shields/suiza.png",
+  Túnez: "/shields/tunez.svg",
+  Turquía: "/shields/turquia.png",
+  Uruguay: "/shields/uruguay.svg",
+  Uzbekistán: "/shields/uzbekistan.svg",
+};
 function getInitials(value) {
   const normalized = String(value || "Usuario").trim();
 
@@ -325,7 +375,26 @@ export default function Profile() {
 
               <div>
                 <dt>Selección favorita</dt>
-                <dd>{profile.favoriteTeam}</dd>
+
+                <dd className="profile-favorite-team">
+                  {profile.favoriteTeam !== "Todavía no elegida" ? (
+                    <>
+                      <span className="profile-favorite-team-shield">
+                        <img
+                          src={TEAM_SHIELDS[profile.favoriteTeam]}
+                          alt={`Escudo de ${profile.favoriteTeam}`}
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </span>
+
+                      <strong>{profile.favoriteTeam}</strong>
+                    </>
+                  ) : (
+                    <span>{profile.favoriteTeam}</span>
+                  )}
+                </dd>
               </div>
             </dl>
           </article>

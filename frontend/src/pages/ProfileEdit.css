@@ -346,3 +346,252 @@
   cursor: not-allowed;
   opacity: 0.58;
 }
+.profile-edit-team-field {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 12px;
+}
+
+.profile-edit-team-label {
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.profile-edit-team-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 13px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.profile-edit-team-search:focus-within {
+  border-color: rgba(167, 139, 250, 0.68);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.profile-edit-team-search input {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f8fafc;
+  font: inherit;
+}
+
+.profile-edit-team-search input::placeholder {
+  color: #64748b;
+}
+
+.profile-edit-team-search button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1.15rem;
+}
+
+.profile-edit-team-search button:hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: #f8fafc;
+}
+
+.profile-edit-team-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.profile-edit-team-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 15px;
+  background: rgba(148, 163, 184, 0.05);
+  color: #cbd5e1;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-edit-team-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(96, 165, 250, 0.34);
+  background: rgba(37, 99, 235, 0.09);
+}
+
+.profile-edit-team-card.is-selected {
+  border-color: rgba(96, 165, 250, 0.64);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(37, 99, 235, 0.18),
+      rgba(124, 58, 237, 0.14)
+    );
+  box-shadow:
+    0 0 0 2px rgba(59, 130, 246, 0.08),
+    0 10px 24px rgba(2, 6, 23, 0.16);
+}
+
+.profile-edit-team-shield {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-edit-team-shield img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.profile-edit-team-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.profile-edit-team-copy strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-edit-team-copy small {
+  color: #64748b;
+  font-size: 0.68rem;
+}
+
+.profile-edit-team-card.is-selected
+.profile-edit-team-copy small {
+  color: #93c5fd;
+}
+
+.profile-edit-team-check {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.profile-edit-team-empty {
+  display: grid;
+  min-height: 110px;
+  place-items: center;
+  border: 1px dashed rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  color: #64748b;
+  text-align: center;
+}
+
+.profile-edit-team-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-edit-team-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.profile-edit-team-grid::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.25);
+}
+
+@media (max-width: 980px) {
+  .profile-edit-team-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-edit-team-grid {
+    grid-template-columns: 1fr;
+    max-height: 380px;
+  }
+}
+.profile-edit-preview-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.07);
+  text-align: left;
+}
+
+.profile-edit-preview-team-shield {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-edit-preview-team-shield img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.profile-edit-preview-team > div:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.profile-edit-preview-team small {
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-edit-preview-team strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
