@@ -22,6 +22,15 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState(EMPTY_STATS);
   const [teams, setTeams] = useState([]);
+  const [activity, setActivity] = useState([]);
+
+  const [tradeStats, setTradeStats] = useState({
+    total: 0,
+    pending: 0,
+    accepted: 0,
+    completed: 0,
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -30,9 +39,18 @@ export default function Dashboard() {
     setError("");
 
     try {
-      const [statsRes, teamsRes] = await Promise.all([
+      const [
+        statsRes,
+        teamsRes,
+        activityRes,
+        receivedRes,
+        sentRes,
+      ] = await Promise.all([
         api.get("/album/stats"),
         api.get("/album/progress-by-team"),
+        api.get("/activity"),
+        api.get("/trade-requests/received"),
+        api.get("/trade-requests/sent"),
       ]);
 
       setStats({
@@ -47,6 +65,53 @@ export default function Dashboard() {
             ? teamsRes.data
             : [],
       );
+
+      setActivity(
+        Array.isArray(activityRes.data?.activity)
+          ? activityRes.data.activity
+          : Array.isArray(activityRes.data)
+            ? activityRes.data
+            : [],
+      );
+
+      const receivedRequests = Array.isArray(
+        receivedRes.data?.tradeRequests,
+      )
+        ? receivedRes.data.tradeRequests
+        : [];
+
+      const sentRequests = Array.isArray(
+        sentRes.data?.tradeRequests,
+      )
+        ? sentRes.data.tradeRequests
+        : [];
+
+      const allTradeRequests = [
+        ...receivedRequests,
+        ...sentRequests,
+      ];
+
+      setTradeStats({
+        total: allTradeRequests.length,
+
+        pending: allTradeRequests.filter(
+          (request) =>
+            String(request.status).toLowerCase() ===
+            "pending",
+        ).length,
+
+        accepted: allTradeRequests.filter(
+          (request) =>
+            String(request.status).toLowerCase() ===
+            "accepted",
+        ).length,
+
+        completed: allTradeRequests.filter(
+          (request) =>
+            String(request.status).toLowerCase() ===
+            "completed",
+        ).length,
+      });
     } catch (err) {
       console.error("DASHBOARD ERROR:", err);
 
@@ -70,10 +135,21 @@ export default function Dashboard() {
       <main className="dashboard-page">
         <section className="dashboard-container">
           <div className="dashboard-state-card">
-            <div className="dashboard-spinner" aria-hidden="true" />
-            <p className="dashboard-eyebrow">FiguMatch</p>
+            <div
+              className="dashboard-spinner"
+              aria-hidden="true"
+            />
+
+            <p className="dashboard-eyebrow">
+              FiguMatch
+            </p>
+
             <h2>Preparando tu colección</h2>
-            <p>Estamos cargando tus figuritas, estadísticas e intercambios.</p>
+
+            <p>
+              Estamos cargando tus figuritas,
+              estadísticas e intercambios.
+            </p>
           </div>
         </section>
       </main>
@@ -85,11 +161,25 @@ export default function Dashboard() {
       <main className="dashboard-page">
         <section className="dashboard-container">
           <div className="dashboard-state-card dashboard-state-card-error">
-            <div className="dashboard-state-icon" aria-hidden="true">⚠️</div>
-            <p className="dashboard-eyebrow">No pudimos cargar el panel</p>
+            <div
+              className="dashboard-state-icon"
+              aria-hidden="true"
+            >
+              ⚠️
+            </div>
+
+            <p className="dashboard-eyebrow">
+              No pudimos cargar el panel
+            </p>
+
             <h2>Ocurrió un problema</h2>
+
             <p>{error}</p>
-            <button type="button" onClick={loadDashboard}>
+
+            <button
+              type="button"
+              onClick={loadDashboard}
+            >
               Reintentar
             </button>
           </div>
@@ -101,6 +191,7 @@ export default function Dashboard() {
   return (
     <main className="dashboard-page">
       <section className="dashboard-container">
+
         <DashboardHero
           user={user}
           generalProgress={stats.progress ?? 0}
@@ -108,14 +199,152 @@ export default function Dashboard() {
         />
 
         <section className="dashboard-highlight-grid">
-          <ProgressPanel progress={stats.progress ?? 0} />
+          <ProgressPanel
+            progress={stats.progress ?? 0}
+          />
+
           <StatsGrid stats={stats} />
         </section>
 
         <section className="dashboard-grid">
           <TeamProgress teams={teams} />
+
           <QuickActions />
         </section>
+
+        <section className="dashboard-recent-activity">
+          <div className="dashboard-section-header">
+            <div>
+              <span className="dashboard-eyebrow">
+                Intercambios
+              </span>
+
+              <h2>Resumen de intercambios</h2>
+            </div>
+          </div>
+
+          <div className="dashboard-trade-summary">
+
+            <article className="dashboard-trade-card">
+              <span aria-hidden="true">🤝</span>
+
+              <div>
+                <strong>
+                  {tradeStats.total}
+                </strong>
+
+                <small>Totales</small>
+              </div>
+            </article>
+
+            <article className="dashboard-trade-card pending">
+              <span aria-hidden="true">⏳</span>
+
+              <div>
+                <strong>
+                  {tradeStats.pending}
+                </strong>
+
+                <small>Pendientes</small>
+              </div>
+            </article>
+
+            <article className="dashboard-trade-card accepted">
+              <span aria-hidden="true">✅</span>
+
+              <div>
+                <strong>
+                  {tradeStats.accepted}
+                </strong>
+
+                <small>Aceptados</small>
+              </div>
+            </article>
+
+            <article className="dashboard-trade-card completed">
+              <span aria-hidden="true">🏆</span>
+
+              <div>
+                <strong>
+                  {tradeStats.completed}
+                </strong>
+
+                <small>Completados</small>
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+        <section className="dashboard-recent-activity">
+          <div className="dashboard-section-header">
+            <div>
+              <span className="dashboard-eyebrow">
+                Actividad reciente
+              </span>
+
+              <h2>Últimos movimientos</h2>
+            </div>
+          </div>
+
+          {activity.length === 0 ? (
+            <div className="dashboard-empty-activity">
+              <span aria-hidden="true">📭</span>
+
+              <p>
+                Todavía no hay actividad reciente.
+              </p>
+            </div>
+          ) : (
+            <div className="dashboard-activity-list">
+              {activity
+                .slice(0, 5)
+                .map((item, index) => (
+                  <article
+                    key={
+                      item.id ||
+                      `${
+                        item.type || "activity"
+                      }-${index}`
+                    }
+                    className="dashboard-activity-item"
+                  >
+                    <span
+                      className="dashboard-activity-icon"
+                      aria-hidden="true"
+                    >
+                      {item.icon || "🔔"}
+                    </span>
+
+                    <div>
+                      <strong>
+                        {item.title ||
+                          item.message ||
+                          "Actividad"}
+                      </strong>
+
+                      {item.description && (
+                        <p>
+                          {item.description}
+                        </p>
+                      )}
+
+                      {item.created_at && (
+                        <small>
+                          {new Date(
+                            item.created_at,
+                          ).toLocaleString(
+                            "es-AR",
+                          )}
+                        </small>
+                      )}
+                    </div>
+                  </article>
+                ))}
+            </div>
+          )}
+        </section>
+
       </section>
     </main>
   );

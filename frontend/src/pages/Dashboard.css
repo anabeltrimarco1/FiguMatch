@@ -652,3 +652,135 @@
     transition: none;
   }
 }
+.dashboard-recent-activity {
+  margin-top: 28px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dashboard-section-header h2 {
+  margin: 4px 0 0;
+  font-size: 1.35rem;
+}
+
+.dashboard-activity-list {
+  display: grid;
+  gap: 12px;
+}
+
+.dashboard-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.dashboard-activity-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 1.2rem;
+}
+
+.dashboard-activity-item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.dashboard-activity-item p {
+  margin: 0 0 6px;
+  opacity: 0.82;
+}
+
+.dashboard-activity-item small {
+  opacity: 0.6;
+  font-size: 0.82rem;
+}
+
+.dashboard-empty-activity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 720px) {
+  .dashboard-recent-activity {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .dashboard-activity-item {
+    padding: 12px;
+  }
+}
+.dashboard-trade-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dashboard-trade-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.dashboard-trade-card > span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 1.25rem;
+}
+
+.dashboard-trade-card strong {
+  display: block;
+  font-size: 1.4rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.dashboard-trade-card small {
+  opacity: 0.72;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-trade-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard-trade-summary {
+    grid-template-columns: 1fr;
+  }
+}
