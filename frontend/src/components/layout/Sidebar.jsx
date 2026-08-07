@@ -55,6 +55,11 @@ const menuGroups = [
         icon: "🔔",
         label: "Actividad",
       },
+      {
+        to: "/perfil",
+        icon: "👤",
+        label: "Perfil",
+      },
     ],
   },
 ];
