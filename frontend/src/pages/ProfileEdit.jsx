@@ -651,8 +651,11 @@ export default function ProfileEdit() {
                     <option value="">Elegí una selección</option>
 
                     {FAVORITE_TEAMS.map((team) => (
-                      <option key={team} value={team}>
-                        {team}
+                      <option
+                        key={team.name}
+                        value={team.name}
+                      >
+                        {team.name}
                       </option>
                     ))}
                   </select>
