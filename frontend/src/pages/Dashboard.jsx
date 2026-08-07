@@ -42,16 +42,16 @@ export default function Dashboard() {
       const [
         statsRes,
         teamsRes,
-        activityRes,
         receivedRes,
         sentRes,
       ] = await Promise.all([
         api.get("/album/stats"),
         api.get("/album/progress-by-team"),
-        api.get("/activity"),
         api.get("/trade-requests/received"),
         api.get("/trade-requests/sent"),
       ]);
+
+      setActivity([]);
 
       setStats({
         ...EMPTY_STATS,
@@ -63,14 +63,6 @@ export default function Dashboard() {
           ? teamsRes.data.teams
           : Array.isArray(teamsRes.data)
             ? teamsRes.data
-            : [],
-      );
-
-      setActivity(
-        Array.isArray(activityRes.data?.activity)
-          ? activityRes.data.activity
-          : Array.isArray(activityRes.data)
-            ? activityRes.data
             : [],
       );
 
@@ -117,9 +109,9 @@ export default function Dashboard() {
 
       setError(
         err?.response?.data?.error ||
-          err?.response?.data?.message ||
-          err?.message ||
-          "No se pudo cargar el Dashboard.",
+        err?.response?.data?.message ||
+        err?.message ||
+        "No se pudo cargar el Dashboard.",
       );
     } finally {
       setLoading(false);
@@ -303,8 +295,7 @@ export default function Dashboard() {
                   <article
                     key={
                       item.id ||
-                      `${
-                        item.type || "activity"
+                      `${item.type || "activity"
                       }-${index}`
                     }
                     className="dashboard-activity-item"
