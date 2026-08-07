@@ -49,6 +49,14 @@ const Activity = lazy(() =>
   import("./pages/Activity.jsx")
 );
 
+const Profile = lazy(() =>
+  import("./pages/Profile.jsx")
+);
+
+const ProfileEdit = lazy(() =>
+  import("./pages/ProfileEdit.jsx")
+);
+
 function ProtectedRoute() {
   const {
     isAuthenticated,
@@ -161,6 +169,16 @@ export default function App() {
           <Route
             path="/actividad"
             element={<Activity />}
+          />
+
+          <Route
+            path="/perfil"
+            element={<Profile />}
+          />
+
+          <Route
+            path="/perfil/editar"
+            element={<ProfileEdit />}
           />
         </Route>
 
